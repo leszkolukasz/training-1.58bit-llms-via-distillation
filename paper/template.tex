@@ -16,31 +16,25 @@
 \usepackage{natbib}
 \usepackage{doi}
 
-\title{A template for the \emph{arxiv} style31}
+\title{Training 1.58bit LLMs via Distillation}
 
 % Here you can change the date presented in the paper title
 %\date{September 9, 1985}
 % Or remove it
 %\date{}
 
-\author{David S.~Hippocampus \\
-	Department of Computer Science\\
-	Cranberry-Lemon University\\
-	Pittsburgh, PA 15213 \\
-	\texttt{hippo@cs.cranberry-lemon.edu} \\
+\author{Łukasz Leszko \\
+	\texttt{[uzupełnić]} \\
 	%% examples of more authors
 	\And
-	Elias D.~Striatum \\
-	Department of Electrical Engineering\\
-	Mount-Sheikh University\\
-	Santa Narimana, Levand \\
-	\texttt{stariate@ee.mount-sheikh.edu} \\
+	Filip Mateńko \\
+	\texttt{f.matenko@student.uw.edu.pl} \\
 }
 
 % Uncomment to override  the `A preprint' in the header
 % \renewcommand{\headeright}{Technical Report}
 \renewcommand{\undertitle}{}
-\renewcommand{\shorttitle}{\textit{arXiv} Template}
+\renewcommand{\shorttitle}{Training 1.58bit LLMs via Distillation}
 
 %%% Add PDF metadata to help others organize their library
 %%% Once the PDF is generated, you can check the metadata with
@@ -48,8 +42,8 @@
 \hypersetup{
 pdftitle={A template for the arxiv style},
 pdfsubject={q-bio.NC, q-bio.QM},
-pdfauthor={David S.~Hippocampus, Elias D.~Striatum},
-pdfkeywords={First keyword, Second keyword, More},
+pdfauthor={Łukasz Leszko},
+pdfkeywords={LLM, Distillatio, Quantization},
 }
 
 \begin{document}
@@ -65,8 +59,46 @@ pdfkeywords={First keyword, Second keyword, More},
 
 
 \section{Introduction}
-\lipsum[2]
-\lipsum[3]
+In recent years, we have observed rapid growth in Large Language Models (LLMs). They have expanded both in their capabilities and in size. 
+Unlike other fields of machine learning, LLMs do not seem to follow the usual rules of overfitting when increasing the number of 
+parameters. When properly trained, more parameters generally lead to better performance in this field. 
+
+Unfortunately, the larger these models become, the more sophisticated hardware and computing power they require. Modern LLMs such as 
+ChatGPT or DeepSeek-R1 demand multiple industrial-grade GPU accelerators to run efficiently. This requirement excludes individuals and 
+organizations without access to such infrastructure from running these models locally, limiting full customization and integration.
+
+Moreover, the energy consumption of human technology is considered one of the major issues of the 21st century. Data centers running LLMs 
+consume enormous amounts of energy for both training and inference. One way to address this issue is through quantization—the process of 
+reducing the precision of a model’s parameters.\cite{xiao2024smoothquantaccurateefficientposttraining}
+
+Typically, parameters in LLMs are represented in 32-bit precision. The idea is to use lower precisions such as 16-bit, 4-bit, 
+or even 1-bit to reduce the memory required to host and run the model. Many researchers around the world are approaching this task from 
+different angles. Some claim to achieve performance close to that of unquantized LLMs.\cite{wang2023bitnetscaling1bittransformers} We 
+decided to focus on the most extreme forms of quantization—reducing the representation to 1 bit (weights from {-1, 1})—and compare it
+with 1.5-bit representation (weights from {-1, 0, 1}). The second approach is less common but has already been introduced in BitNet 
+b1.58.\cite{ma2024era1bitllmslarge}
+
+One possible method is to train the LLM in low precision from scratch. However, this approach, like any full training process, is
+computationally expensive. Additionally, it poses challenges when computing gradients with respect to discrete-valued parameters.
+An alternative is to take an existing high-precision model and distill it into a quantized model.
+\cite{du2024bitdistillerunleashingpotentialsub4bit} The full-precision model serves as a teacher to a smaller, quantized student model. 
+In our work, we aim to explore an approach similar to that used in FBI-LLM.\cite{fbillm} In this work, the authors first binarize all 
+linear transformer weights using a signum function—excluding embeddings, layer norms, and the head. They then introduce additional 
+full-precision weights and biases for each binarized linear layer. These parameters, along with the head, become the only learnable 
+components after bit quantization. The model is then distilled using a simple cross-entropy loss to align the responses of the student 
+model with those of the teacher.
+
+In our approach, we plan to explore both 1-bit and 1.5-bit quantizations. Additionally, we aim to experiment with different loss 
+functions, such as KL divergence, Wasserstein distance, and symmetrized KL divergence. These approaches have been investigated in various
+prior works.\cite{boizard2025crosstokenizerdistillationuniversallogit, du2024bitdistillerunleashingpotentialsub4bit} Using KL divergence 
+could better align the output distributions of the student and teacher models, as opposed to simply learning correct answers, which is 
+the focus of cross-entropy loss. Moreover, Wasserstein distance may allow distillation even when the student and teacher have different 
+output distributions.
+
+For future work, it would also be valuable to compare training from scratch with distillation-based approaches. Some researchers 
+have also explored white-box distillation, which aims to mimic not only the final outputs but also the hidden states of the teacher 
+model.\cite{gu2024minillmknowledgedistillationlarge}
+
 
 
 \section{Headings: first level}
