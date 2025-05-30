@@ -82,8 +82,8 @@ One possible method is to train the LLM in low precision from scratch. However, 
 computationally expensive. Additionally, it poses challenges when computing gradients with respect to discrete-valued parameters.
 An alternative is to take an existing high-precision model and distill it into a quantized model
 \cite{du2024bitdistillerunleashingpotentialsub4bit}. The full-precision model serves as a teacher to a smaller, quantized student model. 
-In our work, we aim to explore an approach similar to that used in FBI-LLM \cite{fbillm}, namely distillation with Quantization Aware Training. In this work, the authors first binarize all 
-linear transformer weights using a signum function - excluding embeddings, layer norms, and the head. They then introduce additional 
+In our work, we aim to explore an approach similar to that used in FBI-LLM \cite{fbillm}, namely knowledge distillation with Quantization Aware Training. In this work, the authors first binarize all 
+linear transformer weights to 1-bit precision using a signum function - excluding embeddings, layer norms, and the head. They then introduce additional 
 full-precision weights and biases for each binarized linear layer. These parameters, along with the head, become the only learnable 
 components after bit quantization. The model is then distilled using a simple cross-entropy loss to align the responses of the student 
 model with those of the teacher.
