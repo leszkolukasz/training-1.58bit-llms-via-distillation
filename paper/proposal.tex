@@ -69,7 +69,7 @@ organizations without access to such infrastructure from running these models lo
 
 Moreover, the energy consumption of human technology is considered one of the major issues of the 21st century. Data centers running LLMs 
 consume enormous amounts of energy for both training and inference. One way to address this issue is through quantization—the process of 
-reducing the precision of a model’s parameters \cite{xiao2024smoothquantaccurateefficientposttraining}.
+reducing the precision of a model’s parameters \cite{quantizationtechniques}.
 
 Typically, parameters in LLMs are represented in 32-bit precision. The idea is to use lower precisions such as 16-bit, 4-bit, 
 or even 1-bit to reduce the memory required to host and run the model. Many researchers around the world are approaching this task from 
@@ -95,8 +95,6 @@ could better align the output distributions of the student and teacher models, a
 the focus of cross-entropy loss. Moreover, Wasserstein distance may allow distillation even when the student and teacher have different 
 output distributions.
 
-To out knowledge, there has been no prior work on training 1.58-bit LLMs via distillation.
-
 For future work, it would also be valuable to compare training from scratch with distillation-based approaches. Some researchers 
 have also explored white-box distillation, which aims to mimic not only the final outputs but also the hidden states of the teacher 
 model \cite{gu2024minillmknowledgedistillationlarge}.
@@ -110,9 +108,9 @@ Choosing model size is crucial for our experiments. Results from \cite{ma2024era
  To perform the distillation, we extend the FBI-LLM approach to support 1.58-bit quantization simply by replacing the quantization function with the one proposed in BitNet b1.58. While FBI-LLM uses cross-entropy loss, we will also experiment with the following loss functions:
 
 \begin{itemize}
-	\item KL Divergence - todo
-	\item Confidence-Aware KL divergence - todo
-	\item Wasserstein Distance - todo
+	\item (Forward) KL Divergence - a measure of how teacher's output distribution differs from the student's output distribution
+	\item Confidence-Aware KL divergence - weighted sum of forward and backward KL divergence with weights based on the confidence of teacher model's predictions
+	\item Wasserstein Distance - metric for quantifying dissimilarities between distributions stemming from the optimal transport theory
 \end{itemize}
 
 The architecture of the BiLinear layer proposed in FBI-LLM closely follows the one used in OneBit \cite{onebit} while differes from the one used in BitNet b1.58 by adding small full-precision learnable parameters. We will investigate how different implementations of the BiLinear layer affect the performance of the distilled model. To that end, we will compare the BiLinear implementations from FBI-LLM, OneBit, and BitNet b1.58.
