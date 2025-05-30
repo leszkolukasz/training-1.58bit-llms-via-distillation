@@ -90,10 +90,9 @@ model with those of the teacher.
 
 In our approach, we plan to explore both 1-bit and 1.58-bit quantizations. Additionally, we aim to experiment with different loss 
 functions, such as KL divergence, Confidence-Aware KL divergence, Wasserstein distance. These approaches have been investigated in various
-prior works \cite{boizard2025crosstokenizerdistillationuniversallogit, du2024bitdistillerunleashingpotentialsub4bit}. Using KL divergence 
+prior works \cite{du2024bitdistillerunleashingpotentialsub4bit, boizard2025crosstokenizerdistillationuniversallogit}. Using KL divergence 
 could better align the output distributions of the student and teacher models, as opposed to simply learning correct answers, which is 
-the focus of cross-entropy loss. Moreover, Wasserstein distance may allow distillation even when the student and teacher have different 
-output distributions.
+the focus of cross-entropy loss. Moreover, Wasserstein distance may allow distillation even when the student and teacher use different tokenizers.
 
 For future work, it would also be valuable to compare training from scratch with distillation-based approaches. Some researchers 
 have also explored white-box distillation, which aims to mimic not only the final outputs but also the hidden states of the teacher 
@@ -101,7 +100,7 @@ model \cite{gu2024minillmknowledgedistillationlarge}.
 
 \section{Experimental setup}
 
-Choosing model size is crucial for our experiments. Results from \cite{ma2024era1bitllmslarge} show that starting from 3B parameters, a 1.58 distilled student was able to much or even outperform it's teacher model. Taking that into account, as well as the fact that we are limited by the computing power, we decided to use a model in a similar size range (2-3B parameters). The choice of the actual architecture will be made later, based on empirical results.
+Choosing model size is crucial for our experiments. Results from \cite{ma2024era1bitllmslarge} show that starting from 3B parameters, a 1.58 distilled student was able to match or even outperform it's teacher model. Taking that into account, as well as the fact that we are limited by the computing power, we decided to use a model in a similar size range (2-3B parameters). The choice of the actual architecture will be made later, based on empirical results.
 
  We follow the quantization process proposed in BitNet and BitNet b1.58 which replaces linear layers with a custom linear layer (BiLinear) that performs 1-bit or 1.58-bit quantization on weights during training. This approach allows us to easily add 1-bit and 1.58-bit quantization capabilities to any model with linear layers (not only transformers).
 
@@ -115,9 +114,9 @@ Choosing model size is crucial for our experiments. Results from \cite{ma2024era
 
 The architecture of the BiLinear layer proposed in FBI-LLM closely follows the one used in OneBit \cite{onebit} while differes from the one used in BitNet b1.58 by adding small full-precision learnable parameters. We will investigate how different implementations of the BiLinear layer affect the performance of the distilled model. To that end, we will compare the BiLinear implementations from FBI-LLM, OneBit, and BitNet b1.58.
 
-The baseline for our experiments will be 1-bit LLM, which has been trained using the exact FBI-LLM approach using the Amber dataset. Amber dataset is an agglomeration of Refined-Web, StarCoder, and RedPajama-v1 and contains the total 1.26 trillion tokens. We will also utilise parts of this dataset to train our 1.58-bit LLMs.
+The baseline for our experiments will be 1-bit LLM, which has been trained using the exact FBI-LLM approach using the Amber dataset \cite{llm360}. Amber dataset is an agglomeration of RefinedWeb \cite{refinedweb}, StarCoder \cite{starcoder}, and RedPajama-v1 \cite{redpajama} and contains 1.26 trillion tokens. We will also utilise parts of this dataset to train our 1.58-bit LLMs.
 
-To evaluate our models, we will use EleutherAI's evaluation suite which provides a set of benchmarks for LLMs. We will focus on measuring perplexity and accuracy on various datasets, like WikiText, MMLU, and others. In addition, as was noted in FBI-LLM paper, training extremely quantized models with distillation may be unstable and result in models that fail to converge. We will monitor that stability by tracking the flip flop rate, which is the percentage of quantized weights that changed sign during training.
+To evaluate our models, we will use EleutherAI's evaluation suite which provides a set of benchmarks for LLMs. We will focus on measuring perplexity and accuracy on various datasets, like WikiText, MMLU, and others. In addition, as was noted in FBI-LLM paper, training extremely quantized models with distillation may be unstable and result in models that fail to converge. We will monitor that stability by tracking the flip-flop rate \cite{flipflop}, which is the percentage of quantized weights that changed sign during training step.
 
 One thing to note is that while the quantized weights, on a disk, can be stored in a packed format, during training, we still need to store them in float16 format to compute gradients. Similarly, during inference, multiplying by 1.58 quantized matrix does not require \verb|MUL| operator, however, to benefit from that, we need to utilise a custom hardware and kernels which is outside of our expertise.
 \bibliographystyle{unsrt}
