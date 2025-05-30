@@ -68,22 +68,22 @@ ChatGPT or DeepSeek-R1 demand multiple industrial-grade GPU accelerators to run 
 organizations without access to such infrastructure from running these models locally, limiting full customization and integration.
 
 Moreover, the energy consumption of human technology is considered one of the major issues of the 21st century. Data centers running LLMs 
-consume enormous amounts of energy for both training and inference. One way to address this issue is through quantization—the process of 
+consume enormous amounts of energy for both training and inference. One way to address this issue is through quantization - the process of 
 reducing the precision of a model's parameters \cite{quantizationtechniques}.
 
 Typically, parameters in LLMs are represented in 32-bit precision. The idea is to use lower precisions such as 16-bit, 4-bit, 
 or even 1-bit to reduce the memory required to host and run the model. Many researchers around the world are approaching this task from 
 different angles. Some claim to achieve performance close to that of unquantized LLMs \cite{wang2023bitnetscaling1bittransformers}. We 
-decided to focus on the most extreme forms of quantization—reducing the representation to 1 bit (weights from {-1, 1})—and compare it
-with 1.5-bit representation (weights from {-1, 0, 1}). The second approach is less common but has already been introduced in BitNet 
+decided to focus on the most extreme forms of quantization - reducing the representation to 1 bit (weights from set \(\{-1,1\}\)) - and compare it
+with 1.58-bit representation (weights from set \(\{-1,0,1\}\)). The second approach is less common but has already been introduced in BitNet 
 b1.58 \cite{ma2024era1bitllmslarge}.
 
 One possible method is to train the LLM in low precision from scratch. However, this approach, like any full training process, is
 computationally expensive. Additionally, it poses challenges when computing gradients with respect to discrete-valued parameters.
 An alternative is to take an existing high-precision model and distill it into a quantized model
 \cite{du2024bitdistillerunleashingpotentialsub4bit}. The full-precision model serves as a teacher to a smaller, quantized student model. 
-In our work, we aim to explore an approach similar to that used in FBI-LLM \cite{fbillm}. In this work, the authors first binarize all 
-linear transformer weights using a signum function—excluding embeddings, layer norms, and the head. They then introduce additional 
+In our work, we aim to explore an approach similar to that used in FBI-LLM \cite{fbillm}, namely distillation with Quantization Aware Training. In this work, the authors first binarize all 
+linear transformer weights using a signum function - excluding embeddings, layer norms, and the head. They then introduce additional 
 full-precision weights and biases for each binarized linear layer. These parameters, along with the head, become the only learnable 
 components after bit quantization. The model is then distilled using a simple cross-entropy loss to align the responses of the student 
 model with those of the teacher.
@@ -108,7 +108,7 @@ To perform the distillation, we extend the FBI-LLM approach to support 1.58-bit 
 
 \begin{itemize}
 	\item (Forward) KL Divergence - a measure of how the teacher's output distribution differs from the student's output distribution
-	\item Confidence-Aware KL divergence - a weighted sum of forward and backward KL divergence with weights based on the confidence of the teacher model's predictions
+	\item Confidence-Aware KL divergence - a weighted sum of forward and reverse KL divergence with weights based on the confidence of the teacher model's predictions
 	\item Wasserstein Distance - a metric for quantifying dissimilarities between distributions stemming from optimal transport theory
 \end{itemize}
 
