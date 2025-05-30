@@ -102,7 +102,7 @@ model \cite{gu2024minillmknowledgedistillationlarge}.
 
 Choosing model size is crucial for our experiments. Results from \cite{ma2024era1bitllmslarge} show that starting from 3B parameters, a 1.58-bit distilled student was able to match its teacher model. Taking that into account, as well as the fact that we are limited by computational power, we decided to use a model in a similar size range (2-3B parameters). The choice of the actual architecture will be made later, based on empirical results.
 
-We follow the quantization process proposed in BitNet and BitNet b1.58, which replaces linear layers with a custom linear layer (BiLinear) that performs 1-bit or 1.58-bit quantization on weights during training. This approach allows us to easily add 1-bit and 1.58-bit quantization capabilities to any model with linear layers (not just transformers).
+We follow the quantization process proposed in BitNet and BitNet b1.58, which replaces linear layers with a custom linear layer (BitLinear) that performs 1-bit or 1.58-bit quantization on weights during training. This approach allows us to easily add 1-bit and 1.58-bit quantization capabilities to any model with linear layers (not just transformers).
 
 To perform the distillation, we extend the FBI-LLM approach to support 1.58-bit quantization simply by replacing the quantization function with the one proposed in BitNet b1.58. While FBI-LLM uses cross-entropy loss, we will also experiment with the following loss functions:
 
@@ -112,7 +112,7 @@ To perform the distillation, we extend the FBI-LLM approach to support 1.58-bit 
 	\item Wasserstein Distance - a metric for quantifying dissimilarities between distributions stemming from optimal transport theory
 \end{itemize}
 
-The architecture of the BiLinear layer proposed in FBI-LLM closely follows the one used in OneBit \cite{onebit} but differs from the one used in BitNet b1.58 by adding small full-precision learnable parameters. We will investigate how different implementations of the BiLinear layer affect the performance of the distilled model. To that end, we will compare the BiLinear implementations from FBI-LLM, OneBit, and BitNet b1.58.
+The architecture of the BitLinear layer proposed in FBI-LLM closely follows the one used in OneBit \cite{onebit} but differs from the one used in BitNet b1.58 by adding small full-precision learnable parameters. We will investigate how different implementations of the BitLinear layer affect the performance of the distilled model. To that end, we will compare the BitLinear implementations from FBI-LLM, OneBit, and BitNet b1.58.
 
 The baseline for our experiments will be a 1-bit LLM, which has been trained using the exact FBI-LLM approach on the Amber dataset \cite{llm360}. The Amber dataset is an agglomeration of RefinedWeb \cite{refinedweb}, StarCoder \cite{starcoder}, and RedPajama-v1 \cite{redpajama} and contains 1.26 trillion tokens. We will also utilize parts of this dataset to train our 1.58-bit LLMs.
 
