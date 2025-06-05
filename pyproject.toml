@@ -1,0 +1,12 @@
+[project]
+name = "training-1-58bit-llms-via-distillation"
+version = "0.1.0"
+description = "NLP Project"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "clearml>=2.0.0",
+    "huggingface-hub[cli]>=0.32.4",
+    "numpy>=2.2.6",
+    "torch>=2.7.1",
+]
