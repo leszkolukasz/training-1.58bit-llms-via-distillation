@@ -1,8 +1,8 @@
 from pathlib import Path
 
 import lightning as L
-from torch.utils.data import DataLoader, random_split
 from lightning.pytorch.demos import WikiText2
+from torch.utils.data import DataLoader, random_split
 
 
 class WikiText2DataModule(L.LightningDataModule):

@@ -1,10 +1,10 @@
+import lightning as L
 import torch
 import torch.nn.functional as F
-import lightning as L
 from lightning.pytorch.demos import Transformer
 
 
-class TestModel(L.LightningModule):
+class ExampleModel(L.LightningModule):
     def __init__(self, vocab_size: int = 33278):
         super().__init__()
         self.save_hyperparameters()

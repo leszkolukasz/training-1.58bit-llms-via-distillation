@@ -1,11 +1,11 @@
+import datetime
+
+from jsonargparse import lazy_instance
 from lightning.pytorch.cli import LightningCLI
 from lightning.pytorch.loggers import MLFlowLogger
-from jsonargparse import lazy_instance
 
-from src.datamodules import *
-from src.models import *
-
-import datetime
+from .datamodules import *
+from .models import *
 
 suffix = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 

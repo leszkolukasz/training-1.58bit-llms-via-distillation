@@ -2,3 +2,4 @@
 
 format:
 	@black .
+	@isort .
