@@ -9,6 +9,7 @@ import datetime
 
 suffix = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
+
 def main():
     LightningCLI(
         seed_everything_default=42,
@@ -21,14 +22,15 @@ def main():
             # "gradient_clip_val": 0.5,
             "deterministic": True,
             "logger": lazy_instance(
-                    MLFlowLogger,
-                    experiment_name="nlp_project",
-                    tracking_uri="file:mlruns",
-                    run_name=f"test_run_{suffix}",
-                    log_model=False, # does not work
+                MLFlowLogger,
+                experiment_name="nlp_project",
+                tracking_uri="file:mlruns",
+                run_name=f"test_run_{suffix}",
+                log_model=False,  # does not work
             ),
         },
     )
+
 
 if __name__ == "__main__":
     main()

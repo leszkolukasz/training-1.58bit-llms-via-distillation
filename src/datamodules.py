@@ -18,7 +18,9 @@ class WikiText2DataModule(L.LightningDataModule):
         self.dataset = WikiText2(data_dir=Path(self.data_dir), download=False)
 
         n = len(self.dataset)
-        self.train_dataset, self.val_dataset, self.test_dataset = random_split(self.dataset, [n - 4000, 2000, 2000])
+        self.train_dataset, self.val_dataset, self.test_dataset = random_split(
+            self.dataset, [n - 4000, 2000, 2000]
+        )
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size)
