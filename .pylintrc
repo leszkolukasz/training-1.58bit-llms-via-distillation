@@ -443,6 +443,8 @@ disable=raw-checker-failed,
         attribute-defined-outside-init,
         unused-wildcard-import,
         wildcard-import,
+        redefined-builtin,
+        unnecessary-lambda-assignment
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

@@ -4,6 +4,8 @@ from jsonargparse import lazy_instance
 from lightning.pytorch.cli import LightningCLI
 from lightning.pytorch.loggers import MLFlowLogger
 
+import src.layers
+
 from .datamodules import *
 from .models import *
 
