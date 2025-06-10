@@ -9,17 +9,22 @@ QuantizationFunctionType = Callable[[torch.Tensor], torch.Tensor]
 
 BitLinearType = tuple[QuantizationType, ImplementationType]
 
+EPSILON = 1e-6
+
 
 def quantize_1b(
-    x: torch.Tensor,
+    w: torch.Tensor,
 ) -> torch.Tensor:
-    return x
+    pre_sign = w - w.mean() + EPSILON
+    return pre_sign + (pre_sign.sign() - pre_sign).detach()
 
 
 def quantize_1_58b(
-    x: torch.Tensor,
+    w: torch.Tensor,
 ) -> torch.Tensor:
-    return x
+    scale = w.abs().mean() + EPSILON
+    pre_round = w / scale
+    return pre_round + (pre_round.round().clamp(-1, 1) - pre_round).detach(), scale
 
 
 QUANTIZATION_TYPE_TO_FUNCTION: dict[QuantizationType, QuantizationFunctionType] = {
