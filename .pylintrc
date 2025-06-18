@@ -444,7 +444,9 @@ disable=raw-checker-failed,
         unused-wildcard-import,
         wildcard-import,
         redefined-builtin,
-        unnecessary-lambda-assignment
+        unnecessary-lambda-assignment,
+        missing-class-docstring,
+        global-statement
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

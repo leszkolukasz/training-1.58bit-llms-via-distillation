@@ -3,7 +3,7 @@ from typing import Callable, Literal
 import torch
 from torch import nn
 
-QuantizationType = Literal["1b", "1.58b"]
+QuantizationType = Literal["1b", "1_58b"]
 ImplementationType = Literal["FBI", "OneBit", "BitNet"]
 QuantizationFunctionType = Callable[[torch.Tensor], torch.Tensor]
 
