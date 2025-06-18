@@ -1,8 +1,50 @@
 from pathlib import Path
 
 import lightning as L
+from datasets import load_dataset
 from lightning.pytorch.demos import WikiText2
 from torch.utils.data import DataLoader, random_split
+from transformers import AutoTokenizer
+
+from src.constants import MODEL_ID
+
+AMBER_DATASET_PATH = "~/data/amber"
+
+
+class AmberDataModule(L.LightningDataModule):
+    def __init__(self, batch_size: int = 8):
+        super().__init__()
+        self.batch_size = batch_size
+        self.detokenizer = AutoTokenizer.from_pretrained("LLM360/Amber", use_fast=True)
+        self.tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, use_fast=True)
+
+    def setup(self, stage: str):
+        self.dataset = load_dataset(
+            "json", data_dir=AMBER_DATASET_PATH, streaming=True
+        ).with_format("torch")
+
+    def _collate_fn(self, batch: list[dict]) -> dict:
+        texts = self.detokenizer.batch_decode(
+            [item["token_ids"] for item in batch], skip_special_tokens=True
+        )
+
+        tokenized = self.tokenizer(
+            texts,
+            padding="longest",
+            return_tensors="pt",
+        )
+
+        return {
+            "input_ids": tokenized["input_ids"],
+            "attention_mask": tokenized["attention_mask"],
+        }
+
+    def train_dataloader(self):
+        return DataLoader(
+            self.dataset["train"],
+            batch_size=self.batch_size,
+            collate_fn=self._collate_fn,
+        )
 
 
 class WikiText2DataModule(L.LightningDataModule):
@@ -30,3 +72,12 @@ class WikiText2DataModule(L.LightningDataModule):
 
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=self.batch_size)
+
+
+if __name__ == "__main__":
+    dm = AmberDataModule(batch_size=8)
+    dm.setup("fit")
+    dl = dm.train_dataloader()
+    for batch in dl:
+        print(batch["input_ids"].shape, batch["attention_mask"].shape)
+    print("Done!")
