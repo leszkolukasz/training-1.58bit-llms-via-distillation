@@ -67,9 +67,18 @@ class OneBitBitLinear(nn.Linear):
     ):
         super().__init__(in_features, out_features, bias)
         self.quantization_fun = quantization_fun
-
+        self.SVID_initialization()
+        
+    def SVID_initialization(self):
+        abs_weight = torch.abs(self.weight)
+        u, sig, v_T = torch.linalg.svd(abs_weight)
+        self.g = nn.Parameter(u[:, 0] * torch.sqrt(sig[0, 0]))
+        self.h = nn.Parameter(v_T[0, :] * torch.sqrt(sig[0, 0]))
+        
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        return super().forward(input)
+        quantized_weights = self.quantization_fun(self.weight)
+        y = torch.mul(F.linear(torch.mul(input, self.g), quantized_weights, self.bias), self.h)
+        return F.layer_norm(y)
 
 
 class BitNetBitLinear(nn.Linear):
