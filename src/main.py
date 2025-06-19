@@ -35,7 +35,7 @@ def main():
     parser.add_argument("--model.quantization", type=str, required=False)
     parser.add_argument("--model.bitlinear_implementation", type=str, required=False)
     parser.add_argument("--model.loss_function", type=str, required=False)
-    parser.add_argument("--ckp_path", type=str, required=False)
+    parser.add_argument("--ckpt_path", type=str, required=False)
 
     args, _ = parser.parse_known_args()
 
@@ -43,7 +43,7 @@ def main():
     quantization = vars(args)["model.quantization"]
     bitlinear_implementation = vars(args)["model.bitlinear_implementation"]
     loss_function = vars(args)["model.loss_function"]
-    checkpoint_path = args.ckp_path
+    checkpoint_path = args.ckpt_path
 
     if args.command == "chat":
         if model_name not in QUANTIZED_MODELS:
