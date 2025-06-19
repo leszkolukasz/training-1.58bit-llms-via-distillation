@@ -81,9 +81,10 @@ class QuantizedQwenModel(ABC, L.LightningModule, GeneratorMixin):
         flip_flop_sum = 0.
         flip_flop_count = 0
 
-        for layer, previous_weight in zip(self.quantized_layers, previous_weights):
-            flip_flop_sum += (layer.weight.data - previous_weight).abs().sum().item()
-            flip_flop_count += layer.weight.data.numel()
+        with torch.no_grad():
+            for layer, previous_weight in zip(self.quantized_layers, previous_weights):
+                flip_flop_sum += (layer.weight.data.sign() - previous_weight.sign()).abs().sum().item() / 2.
+                flip_flop_count += layer.weight.data.numel()
 
         flip_flop_ratio = flip_flop_sum / (flip_flop_count + EPSILON)
 
