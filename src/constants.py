@@ -1,1 +1,4 @@
 MODEL_ID = "Qwen/Qwen3-0.6B"
+EPSILON = 1e-6
+AMBER_DATASET_PATH = "~/data/amber"
+BATCH_SIZE = 8

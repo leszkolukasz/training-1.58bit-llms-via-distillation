@@ -26,11 +26,11 @@ def main():
         "command", choices=["chat", "fit", "validate", "test", "predict"]
     )
     parser.add_argument("--model", type=str, required=False)
-    parser.add_argument("--model.quantization", type=QuantizationType, required=False)
+    parser.add_argument("--model.quantization", type=str, required=False)
     parser.add_argument(
-        "--model.bitlinear_implementation", type=ImplementationType, required=False
+        "--model.bitlinear_implementation", type=str, required=False
     )
-    parser.add_argument("--model.loss_function", type=LossFunctionType, required=False)
+    parser.add_argument("--model.loss_function", type=str, required=False)
     parser.add_argument("--ckp_path", type=str, required=False)
 
     args, _ = parser.parse_known_args()

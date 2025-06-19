@@ -5,13 +5,12 @@ from torch import nn
 import torch.nn.functional as F
 
 QuantizationType = Literal["1b", "1_58b", "1b_no_shift"]
+from src.constants import EPSILON
+
 ImplementationType = Literal["FBI", "OneBit", "BitNet"]
 QuantizationFunctionType = Callable[[torch.Tensor], torch.Tensor]
 
 BitLinearType = tuple[QuantizationType, ImplementationType]
-
-EPSILON = 1e-6
-
 
 def quantize_1b(
     w: torch.Tensor,
@@ -141,6 +140,8 @@ def quantize_model(
 
     modules_dict: dict[str, nn.Module] = dict(model.named_modules())
 
+    quantized_layers = []
+
     for full_name, module in model.named_modules():
         name = full_name.split(".")[-1]
 
@@ -157,11 +158,15 @@ def quantize_model(
                 bias=bias,
             )
 
-            # TODO: how to initialize weights?
+            quantized_layers.append(new_module)
+
+            new_module.weight.data = module.weight.data.clone()
+            if bias:
+                new_module.bias.data = module.bias.data.clone()
 
             parent_full_name = full_name.rsplit(".", 1)[0]
             parent = modules_dict[parent_full_name]
 
             setattr(parent, name, new_module)
 
-    return model
+    return model, quantized_layers
