@@ -6,15 +6,14 @@ import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from src.constants import QWEN_MODEL_ID, SMOL_MODEL_ID
+from src.constants import EPSILON, QWEN_MODEL_ID, SMOL_MODEL_ID
 from src.layers import ImplementationType, QuantizationType, quantize_model
 from src.loss import LossFunctionType, get_loss_function
 
-from .mixins import GeneratorMixin, Message
-from src.constants import EPSILON
+from .mixins import ChatMixin, LogArtifactMixin, Message
 
 
-class QuantizedModel(ABC, L.LightningModule, GeneratorMixin):
+class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
     tokenizer: AutoTokenizer
     model: AutoModelForCausalLM
     criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor]
@@ -31,13 +30,15 @@ class QuantizedModel(ABC, L.LightningModule, GeneratorMixin):
         super().__init__()
 
         def load(compile=True):
-            m = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.bfloat16)
+            model = AutoModelForCausalLM.from_pretrained(
+                model_id, torch_dtype=torch.float32
+            )  # there are problems with bfloat16
 
             if compile:
-                m = torch.compile(m, mode="max-autotune", fullgraph=True)
-            return m
+                model = torch.compile(model, mode="max-autotune", fullgraph=True)
+            return model
 
-        self.teacher_model, base_model = load(), load(False)
+        self.teacher_model, base_model = load(False), load(False)
 
         for param in self.teacher_model.parameters():
             param.requires_grad = False
@@ -46,12 +47,19 @@ class QuantizedModel(ABC, L.LightningModule, GeneratorMixin):
             model_id, use_fast=True, padding_side="left"
         )
 
-        layers_to_quantize = ["o_proj", "q_proj", "k_proj", "v_proj", "gate_proj", "up_proj", "down_proj"]
+        layers_to_quantize = [
+            "o_proj",
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "gate_proj",
+            "up_proj",
+            "down_proj",
+        ]
         self.model, self.quantized_layers = quantize_model(
             base_model, quantization, bitlinear_implementation, layers_to_quantize
         )
         self.criterion = get_loss_function(loss_function)
-        self.quantized_layers = layers_to_quantize
 
         self.save_hyperparameters()
 
@@ -72,7 +80,7 @@ class QuantizedModel(ABC, L.LightningModule, GeneratorMixin):
         )
 
         return loss
-    
+
     def backward(self, loss):
         previous_weights = [
             layer.weight.data.clone().detach() for layer in self.quantized_layers
@@ -80,12 +88,14 @@ class QuantizedModel(ABC, L.LightningModule, GeneratorMixin):
 
         super().backward(loss)
 
-        flip_flop_sum = 0.
+        flip_flop_sum = 0.0
         flip_flop_count = 0
 
         with torch.no_grad():
             for layer, previous_weight in zip(self.quantized_layers, previous_weights):
-                flip_flop_sum += (layer.weight.data.sign() - previous_weight.sign()).abs().sum().item() / 2.
+                flip_flop_sum += (
+                    layer.weight.data.sign() - previous_weight.sign()
+                ).abs().sum().item() / 2.0
                 flip_flop_count += layer.weight.data.numel()
 
         flip_flop_ratio = flip_flop_sum / (flip_flop_count + EPSILON)
@@ -102,7 +112,7 @@ class QuantizedModel(ABC, L.LightningModule, GeneratorMixin):
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.001)
 
-    def generate(self, messages: list[Message], **kwargs) -> str:
+    def chat(self, messages: list[Message], **kwargs) -> str:
         self.model.eval()
 
         prompt = self.tokenizer.apply_chat_template(
@@ -123,6 +133,7 @@ class QuantizedModel(ABC, L.LightningModule, GeneratorMixin):
             output[0], skip_special_tokens=True, clean_up_tokenization_spaces=True
         )
 
+
 class QuantizedQwenModel(QuantizedModel):
     def __init__(
         self,
@@ -135,8 +146,17 @@ class QuantizedQwenModel(QuantizedModel):
             bitlinear_implementation=bitlinear_implementation,
             loss_function=loss_function,
             model_id=QWEN_MODEL_ID,
-            layers_to_quantize=["o_proj", "q_proj", "k_proj", "v_proj", "gate_proj", "up_proj", "down_proj"]
+            layers_to_quantize=[
+                "o_proj",
+                "q_proj",
+                "k_proj",
+                "v_proj",
+                "gate_proj",
+                "up_proj",
+                "down_proj",
+            ],
         )
+
 
 class QuantizedSmolModel(QuantizedModel):
     def __init__(
@@ -150,8 +170,17 @@ class QuantizedSmolModel(QuantizedModel):
             bitlinear_implementation=bitlinear_implementation,
             loss_function=loss_function,
             model_id=SMOL_MODEL_ID,
-            layers_to_quantize=["o_proj", "q_proj", "k_proj", "v_proj", "gate_proj", "up_proj", "down_proj"]
+            layers_to_quantize=[
+                "o_proj",
+                "q_proj",
+                "k_proj",
+                "v_proj",
+                "gate_proj",
+                "up_proj",
+                "down_proj",
+            ],
         )
+
 
 if __name__ == "__main__":
     m = AutoModelForCausalLM.from_pretrained(SMOL_MODEL_ID, torch_dtype=torch.bfloat16)

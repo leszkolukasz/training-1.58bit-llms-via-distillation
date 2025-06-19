@@ -1,6 +1,7 @@
 import argparse
 import datetime
 
+import torch
 from jsonargparse import lazy_instance
 from lightning.pytorch.cli import LightningCLI
 from lightning.pytorch.loggers import MLFlowLogger
@@ -13,10 +14,16 @@ from src.models.quantized import QuantizedQwenModel, QuantizedSmolModel
 
 suffix = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-QUANTIZED_MODELS = {
-    "QuantizedQwenModel": QuantizedQwenModel,
-    "QuantizedSmolModel": QuantizedSmolModel,
-}
+torch.set_float32_matmul_precision("high")
+
+
+class MyLightningCLI(LightningCLI):
+    def add_arguments_to_parser(self, parser):
+        parser.link_arguments(
+            "model.class_path",
+            "data.init_args.model_name",
+            compute_fn=lambda a: a.split(".")[-1],
+        )
 
 
 def main():
@@ -26,9 +33,7 @@ def main():
     )
     parser.add_argument("--model", type=str, required=False)
     parser.add_argument("--model.quantization", type=str, required=False)
-    parser.add_argument(
-        "--model.bitlinear_implementation", type=str, required=False
-    )
+    parser.add_argument("--model.bitlinear_implementation", type=str, required=False)
     parser.add_argument("--model.loss_function", type=str, required=False)
     parser.add_argument("--ckp_path", type=str, required=False)
 
@@ -49,8 +54,7 @@ def main():
         if checkpoint_path is None:
             raise ValueError("Checkpoint path must be provided for chat command.")
 
-        # model = QUANTIZED_MODELS[model_name].load_from_checkpoint(checkpoint_path)
-        model = None
+        model = QUANTIZED_MODELS[model_name].cls.load_from_checkpoint(checkpoint_path)
         chat_loop(model)
 
         return
@@ -71,7 +75,7 @@ def main():
             f"quant_{quantization}_impl_{bitlinear_implementation}_loss_{loss_function}"
         )
 
-    LightningCLI(
+    MyLightningCLI(
         seed_everything_default=42,
         save_config_callback=None,
         trainer_defaults={

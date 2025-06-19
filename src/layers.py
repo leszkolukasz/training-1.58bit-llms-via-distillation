@@ -54,6 +54,7 @@ class FBIBitLinear(nn.Linear):
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         quantized_weights = self.quantization_fun(self.weight)
         fbi_weights = self.alpha[None, :] * quantized_weights + self.beta[None, :]
+
         return F.linear(input, fbi_weights, self.bias) # TODO: Do we want self.bias here? self.beta kind of acts like one but is not equivalent to an affine shift 
 
 class OneBitBitLinear(nn.Linear):

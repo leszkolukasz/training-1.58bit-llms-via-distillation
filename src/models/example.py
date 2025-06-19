@@ -3,8 +3,10 @@ import torch
 import torch.nn.functional as F
 from lightning.pytorch.demos import Transformer
 
+from src.models.mixins import LogArtifactMixin
 
-class ExampleModel(L.LightningModule):
+
+class ExampleModel(LogArtifactMixin, L.LightningModule):
     def __init__(self, vocab_size: int = 33278):
         super().__init__()
         self.save_hyperparameters()
@@ -39,13 +41,3 @@ class ExampleModel(L.LightningModule):
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.001)
-
-    def on_fit_end(self):
-        super().on_fit_end()
-
-        model_path = (
-            self.trainer.checkpoint_callback.last_model_path
-            or self.trainer.checkpoint_callback.best_model_path
-        )
-
-        self.logger.experiment.log_artifact(self.logger.run_id, model_path)

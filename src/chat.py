@@ -1,40 +1,24 @@
 from threading import Thread
 
 import torch
-from transformers import (AutoConfig, AutoModelForCausalLM, AutoTokenizer,
-                          TextIteratorStreamer)
+from transformers import TextIteratorStreamer
 
-from src.constants import QWEN_MODEL_ID
-from src.models.mixins import GeneratorMixin, Message
+from src.models.mixins import ChatMixin, Message
 
-base_model = AutoModelForCausalLM.from_pretrained(QWEN_MODEL_ID, torch_dtype=torch.bfloat16)
-tokenizer = AutoTokenizer.from_pretrained(QWEN_MODEL_ID, use_fast=True, padding_side="left")
-
-base_model.eval()
-base_model.to("cuda")
+DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
-def stream_reponse(model: GeneratorMixin, messages: list[Message]):
+def stream_reponse(model: ChatMixin, messages: list[Message]):
     streamer = TextIteratorStreamer(
-        tokenizer, skip_prompt=True, skip_special_tokens=True
+        model.tokenizer, skip_prompt=True, skip_special_tokens=True
     )
 
-    prompt = tokenizer.apply_chat_template(
-        messages, tokenize=False, add_generation_prompt=True
-    )
-
-    model_inputs = tokenizer([prompt], return_tensors="pt").to(base_model.device)
-
-    generate_kwargs = {
-        # "messages": messages,
-        "input_ids": model_inputs["input_ids"],
-        "attention_mask": model_inputs["attention_mask"],
+    chat_kwargs = {
+        "messages": messages,
         "streamer": streamer,
-        "pad_token_id": tokenizer.eos_token_id,
-        "max_new_tokens": 1024,
     }
 
-    thread = Thread(target=base_model.generate, kwargs=generate_kwargs)
+    thread = Thread(target=model.chat, kwargs=chat_kwargs)
     thread.start()
 
     print("Assistant: ", end="", flush=True)
@@ -49,8 +33,11 @@ def stream_reponse(model: GeneratorMixin, messages: list[Message]):
     return response
 
 
-def chat_loop(model: GeneratorMixin):
+def chat_loop(model: ChatMixin):
     messages = []
+
+    model.eval()
+    model.to(DEVICE)
 
     while True:
         try:
