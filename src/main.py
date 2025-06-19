@@ -7,16 +7,15 @@ from lightning.pytorch.loggers import MLFlowLogger
 
 from src.chat import chat_loop
 from src.datamodules import *
-from src.layers import ImplementationType, QuantizationType
-from src.loss import LossFunctionType
 # Required for LightningCLI to detect all models and datamodules
 from src.models import *
-from src.models.quantized import QuantizedQwenModel
+from src.models.quantized import QuantizedQwenModel, QuantizedSmolModel
 
 suffix = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 QUANTIZED_MODELS = {
     "QuantizedQwenModel": QuantizedQwenModel,
+    "QuantizedSmolModel": QuantizedSmolModel,
 }
 
 

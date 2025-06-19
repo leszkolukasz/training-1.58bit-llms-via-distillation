@@ -4,11 +4,11 @@ import torch
 from transformers import (AutoConfig, AutoModelForCausalLM, AutoTokenizer,
                           TextIteratorStreamer)
 
-from src.constants import MODEL_ID
+from src.constants import QWEN_MODEL_ID
 from src.models.mixins import GeneratorMixin, Message
 
-base_model = AutoModelForCausalLM.from_pretrained(MODEL_ID, torch_dtype=torch.bfloat16)
-tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, use_fast=True, padding_side="left")
+base_model = AutoModelForCausalLM.from_pretrained(QWEN_MODEL_ID, torch_dtype=torch.bfloat16)
+tokenizer = AutoTokenizer.from_pretrained(QWEN_MODEL_ID, use_fast=True, padding_side="left")
 
 base_model.eval()
 base_model.to("cuda")

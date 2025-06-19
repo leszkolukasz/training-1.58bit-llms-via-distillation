@@ -4,9 +4,9 @@ from typing import Callable
 import lightning as L
 import torch
 import torch.nn as nn
-from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from src.constants import MODEL_ID
+from src.constants import QWEN_MODEL_ID, SMOL_MODEL_ID
 from src.layers import ImplementationType, QuantizationType, quantize_model
 from src.loss import LossFunctionType, get_loss_function
 
@@ -14,7 +14,7 @@ from .mixins import GeneratorMixin, Message
 from src.constants import EPSILON
 
 
-class QuantizedQwenModel(ABC, L.LightningModule, GeneratorMixin):
+class QuantizedModel(ABC, L.LightningModule, GeneratorMixin):
     tokenizer: AutoTokenizer
     model: AutoModelForCausalLM
     criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor]
@@ -25,11 +25,13 @@ class QuantizedQwenModel(ABC, L.LightningModule, GeneratorMixin):
         quantization: QuantizationType,
         bitlinear_implementation: ImplementationType,
         loss_function: LossFunctionType,
+        model_id: str,
+        layers_to_quantize: list[str],
     ):
         super().__init__()
 
         def load(compile=True):
-            m = AutoModelForCausalLM.from_pretrained(MODEL_ID, torch_dtype=torch.bfloat16)
+            m = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.bfloat16)
 
             if compile:
                 m = torch.compile(m, mode="max-autotune", fullgraph=True)
@@ -41,7 +43,7 @@ class QuantizedQwenModel(ABC, L.LightningModule, GeneratorMixin):
             param.requires_grad = False
 
         self.tokenizer = AutoTokenizer.from_pretrained(
-            MODEL_ID, use_fast=True, padding_side="left"
+            model_id, use_fast=True, padding_side="left"
         )
 
         layers_to_quantize = ["o_proj", "q_proj", "k_proj", "v_proj", "gate_proj", "up_proj", "down_proj"]
@@ -120,3 +122,37 @@ class QuantizedQwenModel(ABC, L.LightningModule, GeneratorMixin):
         return self.tokenizer.decode(
             output[0], skip_special_tokens=True, clean_up_tokenization_spaces=True
         )
+
+class QuantizedQwenModel(QuantizedModel):
+    def __init__(
+        self,
+        quantization: QuantizationType,
+        bitlinear_implementation: ImplementationType,
+        loss_function: LossFunctionType,
+    ):
+        super().__init__(
+            quantization=quantization,
+            bitlinear_implementation=bitlinear_implementation,
+            loss_function=loss_function,
+            model_id=QWEN_MODEL_ID,
+            layers_to_quantize=["o_proj", "q_proj", "k_proj", "v_proj", "gate_proj", "up_proj", "down_proj"]
+        )
+
+class QuantizedSmolModel(QuantizedModel):
+    def __init__(
+        self,
+        quantization: QuantizationType,
+        bitlinear_implementation: ImplementationType,
+        loss_function: LossFunctionType,
+    ):
+        super().__init__(
+            quantization=quantization,
+            bitlinear_implementation=bitlinear_implementation,
+            loss_function=loss_function,
+            model_id=SMOL_MODEL_ID,
+            layers_to_quantize=["o_proj", "q_proj", "k_proj", "v_proj", "gate_proj", "up_proj", "down_proj"]
+        )
+
+if __name__ == "__main__":
+    m = AutoModelForCausalLM.from_pretrained(SMOL_MODEL_ID, torch_dtype=torch.bfloat16)
+    print(m)
