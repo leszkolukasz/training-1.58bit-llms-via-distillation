@@ -2,6 +2,7 @@ from typing import Callable, Literal
 
 import torch
 from torch import nn
+import torch.nn.functional as F
 
 QuantizationType = Literal["1b", "1_58b"]
 ImplementationType = Literal["FBI", "OneBit", "BitNet"]
@@ -27,9 +28,14 @@ def quantize_1_58b(
     return pre_round + (pre_round.round().clamp(-1, 1) - pre_round).detach(), scale
 
 
+def quantize_1b_no_shift(w: torch.Tensor) -> torch.Tensor:
+    return w + (w.sign() - w).detach() 
+
+
 QUANTIZATION_TYPE_TO_FUNCTION: dict[QuantizationType, QuantizationFunctionType] = {
     "1b": quantize_1b,
     "1.58b": quantize_1_58b,
+    "1b_no_shift": quantize_1b_no_shift,
 }
 
 
@@ -43,10 +49,13 @@ class FBIBitLinear(nn.Linear):
     ):
         super().__init__(in_features, out_features, bias)
         self.quantization_fun = quantization_fun
+        self.alpha = nn.Parameter(self.weight.mean(dim=0))
+        self.beta = nn.Parameter(torch.abs(self.weight - self.alpha).mean(dim=0))
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        return super().forward(input)
-
+        quantized_weights = self.quantization_fun(self.weight)[0]
+        fbi_weights = self.alpha[None, :] * quantized_weights + self.beta[None, :]
+        return F.linear(input, fbi_weights, self.bias) # TODO: Do we want self.bias here? self.beta kind of acts like one but is not equivalent to an affine shift 
 
 class OneBitBitLinear(nn.Linear):
     def __init__(
@@ -69,13 +78,29 @@ class BitNetBitLinear(nn.Linear):
         in_features: int,
         out_features: int,
         quantization_fun: QuantizationFunctionType,
+        activation_bits: int=8, # Like in the original BitNet paper
         bias: bool = True,
     ):
         super().__init__(in_features, out_features, bias)
         self.quantization_fun = quantization_fun
+        self.activation_bits = activation_bits
+        self.beta = nn.Parameter(self.weight.abs().mean())
+        
+    def quantize_activation(self, x: torch.Tensor) -> torch.Tensor:
+        normalized_x = F.layer_norm(x, eps=EPSILON) # LayerNorm here
+        gamma = x.abs().max(dim=1, keepdim=True).values.clamp(min=EPSILON)
+        Q_b = 2 ** (self.activation_bits - 1)
+        return torch.clamp(
+            normalized_x * (Q_b / gamma), 
+            -Q_b + EPSILON, Q_b - EPSILON, 
+        ), gamma
+        
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        return super().forward(input)
+        quantized_weights, beta = self.quantization_fun(self.weight) 
+        quantized_activations, gamma = self.quantize_activation(input)
+        scaling_factor = beta * gamma / (2 ** (self.activation_bits -1))
+        return F.linear(quantized_activations, quantized_weights, self.bias) * scaling_factor
 
 
 IMPLEMENTATION_TYPE_TO_CLASS: dict[ImplementationType, type] = {
