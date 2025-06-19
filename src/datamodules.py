@@ -6,13 +6,10 @@ from lightning.pytorch.demos import WikiText2
 from torch.utils.data import DataLoader, random_split
 from transformers import AutoTokenizer
 
-from src.constants import MODEL_ID
-
-AMBER_DATASET_PATH = "~/data/amber"
-
+from src.constants import MODEL_ID, AMBER_DATASET_PATH, BATCH_SIZE
 
 class AmberDataModule(L.LightningDataModule):
-    def __init__(self, batch_size: int = 8):
+    def __init__(self, batch_size: int = BATCH_SIZE):
         super().__init__()
         self.batch_size = batch_size
         self.detokenizer = AutoTokenizer.from_pretrained("LLM360/Amber", use_fast=True)
@@ -48,7 +45,7 @@ class AmberDataModule(L.LightningDataModule):
 
 
 class WikiText2DataModule(L.LightningDataModule):
-    def __init__(self, batch_size: int = 8, data_dir: str = "./data"):
+    def __init__(self, batch_size: int = BATCH_SIZE, data_dir: str = "./data"):
         super().__init__()
         self.batch_size = batch_size
         self.data_dir = data_dir
