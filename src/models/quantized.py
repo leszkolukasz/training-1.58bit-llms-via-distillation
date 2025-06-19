@@ -112,12 +112,14 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.001)
 
-    def chat(self, messages: list[Message], **kwargs) -> str:
+    def chat(self, messages: list[Message] = None, prompt: str = None, **kwargs) -> str:
         self.model.eval()
 
-        prompt = self.tokenizer.apply_chat_template(
-            messages, tokenize=False, add_generation_prompt=True
-        )
+        if messages is not None:
+            prompt = self.tokenizer.apply_chat_template(
+                messages, tokenize=False, add_generation_prompt=True
+            )
+
         model_inputs = self.tokenizer([prompt], return_tensors="pt").to(self.device)
 
         output = self.model.generate(

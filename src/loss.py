@@ -19,7 +19,8 @@ def get_loss_function(loss_type: LossFunctionType):
         raise ValueError(f"Unsupported loss type: {loss_type}")
 
 def cross_entropy(teacher_logits: torch.Tensor, student_logits: torch.Tensor) -> torch.Tensor:
-    return f.cross_entropy(teacher_logits, student_logits)
+    teacher_probs = f.softmax(teacher_logits.cpu(), dim=-1).to(student_logits.device)
+    return f.cross_entropy(student_logits, teacher_probs)
 
 def KL_loss(teacher_logits: torch.Tensor, student_logits: torch.Tensor, temperature: float=1.0) -> torch.Tensor:
     teacher_probs = f.softmax(teacher_logits / temperature, dim=1)

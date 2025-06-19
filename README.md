@@ -48,6 +48,7 @@ To chat with the trained model, execute the following command:
 uv run python -m src.main chat \
   --model <model_name> \
   --ckpt_path <path_to_checkpoint>
+  --simple (optional, does not apply chat template)
 ```
 
 #### Example

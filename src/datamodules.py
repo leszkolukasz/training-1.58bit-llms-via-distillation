@@ -78,7 +78,7 @@ class WikiText2DataModule(L.LightningDataModule):
 
 
 if __name__ == "__main__":
-    dm = AmberDataModule(batch_size=8)
+    dm = AmberDataModule(model_name="QuantizedSmolModel", batch_size=BATCH_SIZE)
     dm.setup("fit")
     dl = dm.train_dataloader()
     for batch in dl:

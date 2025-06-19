@@ -2,6 +2,7 @@ import argparse
 import datetime
 
 import torch
+import mlflow
 from jsonargparse import lazy_instance
 from lightning.pytorch.cli import LightningCLI
 from lightning.pytorch.loggers import MLFlowLogger
@@ -12,9 +13,31 @@ from src.datamodules import *
 from src.models import *
 from src.models.quantized import QuantizedQwenModel, QuantizedSmolModel
 
-suffix = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-
 torch.set_float32_matmul_precision("high")
+
+
+suffix = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+experiment_name = "nlp_project"
+tracking_uri = "file:mlruns"
+
+mlflow.set_tracking_uri(tracking_uri)
+mlflow.set_experiment(experiment_name)
+
+client = mlflow.tracking.MlflowClient()
+
+def get_or_create_run(run_name: str):
+    runs = client.search_runs(
+        experiment_ids=[client.get_experiment_by_name(experiment_name).experiment_id],
+        filter_string=f"tags.mlflow.runName = '{run_name}'"
+    )
+    
+    for r in runs:
+        return r
+
+    return client.create_run(
+        experiment_id=client.get_experiment_by_name(experiment_name).experiment_id,
+        tags={"mlflow.runName": run_name}
+    )
 
 
 class MyLightningCLI(LightningCLI):
@@ -25,12 +48,12 @@ class MyLightningCLI(LightningCLI):
             compute_fn=lambda a: a.split(".")[-1],
         )
 
-
 def main():
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(
         "command", choices=["chat", "fit", "validate", "test", "predict"]
     )
+    parser.add_argument("--simple", action="store_true", default=False)
     parser.add_argument("--model", type=str, required=False)
     parser.add_argument("--model.quantization", type=str, required=False)
     parser.add_argument("--model.bitlinear_implementation", type=str, required=False)
@@ -55,7 +78,7 @@ def main():
             raise ValueError("Checkpoint path must be provided for chat command.")
 
         model = QUANTIZED_MODELS[model_name].cls.load_from_checkpoint(checkpoint_path)
-        chat_loop(model)
+        chat_loop(model, args.simple)
 
         return
 
@@ -75,9 +98,14 @@ def main():
             f"quant_{quantization}_impl_{bitlinear_implementation}_loss_{loss_function}"
         )
 
+    run = get_or_create_run(run_name)
+
     MyLightningCLI(
         seed_everything_default=42,
-        save_config_callback=None,
+        # save_config_callback=None
+        save_config_kwargs={
+            "overwrite": True,
+        },
         trainer_defaults={
             "accelerator": "auto",
             "devices": -1,
@@ -90,6 +118,7 @@ def main():
                 experiment_name="nlp_project",
                 tracking_uri="file:mlruns",
                 run_name=run_name,
+                run_id=run.info.run_id,
                 log_model=False,
             ),
         },

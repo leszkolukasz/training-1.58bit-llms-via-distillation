@@ -1,4 +1,4 @@
-from typing import TypedDict
+from typing import TypedDict, Optional
 
 from transformers import AutoTokenizer
 
@@ -11,7 +11,7 @@ class Message(TypedDict):
 class ChatMixin:
     tokenizer: AutoTokenizer
 
-    def chat(self, messages: list[Message], **kwargs) -> str:
+    def chat(self, messages: Optional[list[Message]], prompt: Optional[str], **kwargs) -> str:
         raise NotImplementedError("Subclasses must implement this method.")
 
 

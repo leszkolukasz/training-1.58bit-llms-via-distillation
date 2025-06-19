@@ -4,11 +4,11 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-QuantizationType = Literal["1b", "1_58b", "1b_no_shift"]
 from src.constants import EPSILON
 
+QuantizationType = Literal["1b", "1_58b", "1b_no_shift"]
 ImplementationType = Literal["FBI", "OneBit", "BitNet"]
-QuantizationFunctionType = Callable[[torch.Tensor], torch.Tensor]
+QuantizationFunctionType = Callable[[torch.Tensor], tuple[torch.Tensor, torch.Tensor | None]]
 
 BitLinearType = tuple[QuantizationType, ImplementationType]
 
@@ -16,7 +16,7 @@ def quantize_1b(
     w: torch.Tensor,
 ) -> torch.Tensor:
     pre_sign = w - w.mean() + EPSILON
-    return pre_sign + (pre_sign.sign() - pre_sign).detach()
+    return pre_sign + (pre_sign.sign() - pre_sign).detach(), None
 
 
 def quantize_1_58b(
@@ -28,12 +28,12 @@ def quantize_1_58b(
 
 
 def quantize_1b_no_shift(w: torch.Tensor) -> torch.Tensor:
-    return w + (w.sign() - w).detach() 
+    return w + (w.sign() - w).detach(), None
 
 
 QUANTIZATION_TYPE_TO_FUNCTION: dict[QuantizationType, QuantizationFunctionType] = {
     "1b": quantize_1b,
-    "1.58b": quantize_1_58b,
+    "1_58b": quantize_1_58b,
     "1b_no_shift": quantize_1b_no_shift,
 }
 
@@ -52,7 +52,7 @@ class FBIBitLinear(nn.Linear):
         self.beta = nn.Parameter(torch.abs(self.weight - self.alpha).mean(dim=0))
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        quantized_weights = self.quantization_fun(self.weight)
+        quantized_weights, _ = self.quantization_fun(self.weight)
         fbi_weights = self.alpha[None, :] * quantized_weights + self.beta[None, :]
 
         return F.linear(input, fbi_weights, self.bias) # TODO: Do we want self.bias here? self.beta kind of acts like one but is not equivalent to an affine shift 
@@ -78,7 +78,7 @@ class OneBitBitLinear(nn.Linear):
         self.h = nn.Parameter(v_T[0, :] * torch.sqrt(sig[0, 0]))
         
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        quantized_weights = self.quantization_fun(self.weight)
+        quantized_weights, _ = self.quantization_fun(self.weight)
         y = torch.mul(F.linear(torch.mul(input, self.g), quantized_weights, self.bias), self.h)
         return F.layer_norm(y)
 

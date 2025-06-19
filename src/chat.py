@@ -1,3 +1,4 @@
+from typing import Optional
 from threading import Thread
 
 import torch
@@ -8,13 +9,14 @@ from src.models.mixins import ChatMixin, Message
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 
 
-def stream_reponse(model: ChatMixin, messages: list[Message]):
+def stream_reponse(model: ChatMixin, messages: Optional[list[Message]] = None, prompt: Optional[str] = None) -> str:
     streamer = TextIteratorStreamer(
         model.tokenizer, skip_prompt=True, skip_special_tokens=True
     )
 
     chat_kwargs = {
         "messages": messages,
+        "prompt": prompt,
         "streamer": streamer,
     }
 
@@ -33,7 +35,7 @@ def stream_reponse(model: ChatMixin, messages: list[Message]):
     return response
 
 
-def chat_loop(model: ChatMixin):
+def chat_loop(model: ChatMixin, simple: bool = False):
     messages = []
 
     model.eval()
@@ -46,8 +48,11 @@ def chat_loop(model: ChatMixin):
                 break
 
             messages.append({"role": "user", "content": user_input})
-            assistant_response = stream_reponse(model, messages)
+            assistant_response = stream_reponse(model, messages=messages) if not simple else stream_reponse(model, prompt=user_input)
             messages.append({"role": "assistant", "content": assistant_response})
+
+            if simple:
+                break
 
         except KeyboardInterrupt:
             break
