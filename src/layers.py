@@ -4,7 +4,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
-QuantizationType = Literal["1b", "1_58b"]
+QuantizationType = Literal["1b", "1_58b", "1b_no_shift"]
 ImplementationType = Literal["FBI", "OneBit", "BitNet"]
 QuantizationFunctionType = Callable[[torch.Tensor], torch.Tensor]
 
@@ -53,7 +53,7 @@ class FBIBitLinear(nn.Linear):
         self.beta = nn.Parameter(torch.abs(self.weight - self.alpha).mean(dim=0))
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
-        quantized_weights = self.quantization_fun(self.weight)[0]
+        quantized_weights = self.quantization_fun(self.weight)
         fbi_weights = self.alpha[None, :] * quantized_weights + self.beta[None, :]
         return F.linear(input, fbi_weights, self.bias) # TODO: Do we want self.bias here? self.beta kind of acts like one but is not equivalent to an affine shift 
 
@@ -64,12 +64,14 @@ class OneBitBitLinear(nn.Linear):
         out_features: int,
         quantization_fun: QuantizationFunctionType,
         bias: bool = True,
+        # TODO: For distillation they use additionally MSE on token reps.
     ):
         super().__init__(in_features, out_features, bias)
         self.quantization_fun = quantization_fun
         self.SVID_initialization()
         
     def SVID_initialization(self):
+        # TODO: SVID approximation. Bad but it serves as some weight initialization
         abs_weight = torch.abs(self.weight)
         u, sig, v_T = torch.linalg.svd(abs_weight)
         self.g = nn.Parameter(u[:, 0] * torch.sqrt(sig[0, 0]))
@@ -93,10 +95,9 @@ class BitNetBitLinear(nn.Linear):
         super().__init__(in_features, out_features, bias)
         self.quantization_fun = quantization_fun
         self.activation_bits = activation_bits
-        self.beta = nn.Parameter(self.weight.abs().mean())
         
     def quantize_activation(self, x: torch.Tensor) -> torch.Tensor:
-        normalized_x = F.layer_norm(x, eps=EPSILON) # LayerNorm here
+        normalized_x = F.layer_norm(x, eps=EPSILON) 
         gamma = x.abs().max(dim=1, keepdim=True).values.clamp(min=EPSILON)
         Q_b = 2 ** (self.activation_bits - 1)
         return torch.clamp(
