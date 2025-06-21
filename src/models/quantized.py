@@ -45,6 +45,8 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
             self.teacher_model = load(compile=False)
             for param in self.teacher_model.parameters():
                 param.requires_grad = False
+
+            self.teacher_model.config.use_cache = True
         else:
             self.teacher_model = None
 
@@ -61,11 +63,16 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         ]
 
     def training_step(self, batch, _batch_idx):
-        input_ids, attention_mask, labels = batch["input_ids"], batch["attention_mask"], batch["labels"]
+        input_ids, attention_mask, labels = (
+            batch["input_ids"],
+            batch["attention_mask"],
+            batch["labels"],
+        )
 
         student_output = self.model(input_ids=input_ids, attention_mask=attention_mask)
 
         if self.teacher_model is not None:
+            self.teacher_model.eval()
             with torch.no_grad():
                 teacher_logits = self.teacher_model(
                     input_ids=input_ids, attention_mask=attention_mask
@@ -73,7 +80,9 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         else:
             teacher_logits = None
 
-        loss = self.criterion(student_output.logits, teacher_logits=teacher_logits, labels=labels)
+        loss = self.criterion(
+            student_output.logits, teacher_logits=teacher_logits, labels=labels
+        )
 
         self.log(
             "train_loss", loss, prog_bar=True, on_step=True, on_epoch=True, logger=True
@@ -88,7 +97,9 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         flip_flop_count = 0
 
         with torch.no_grad():
-            for layer, previous_weight in zip(self.quantized_layers, self.previous_weights):
+            for layer, previous_weight in zip(
+                self.quantized_layers, self.previous_weights
+            ):
                 previous_weight = previous_weight.to(layer.weight.data.device)
                 flip_flop_sum += (
                     layer.weight.data.sign() - previous_weight.sign()
@@ -111,7 +122,26 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         ]
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.0001, betas=(0.9, 0.95))
+        optimizer = torch.optim.AdamW(
+            self.parameters(), lr=3e-4, betas=(0.9, 0.95), weight_decay=0.1
+        )
+        T_max = (
+            self.trainer.estimated_stepping_batches
+            if self.trainer.estimated_stepping_batches > 0
+            else 10000
+        )
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=T_max, eta_min=1e-7
+        )
+
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "interval": "step",
+                "frequency": 1,
+            },
+        }
 
     @torch.inference_mode()
     def chat(self, messages: list[Message] = None, prompt: str = None, **kwargs) -> str:
