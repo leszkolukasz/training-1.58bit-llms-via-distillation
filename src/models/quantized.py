@@ -39,10 +39,14 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
                 model = torch.compile(model, mode="max-autotune", fullgraph=True)
             return model
 
-        self.teacher_model, base_model = load(False), load(False)
+        base_model = load(compile=False)
 
-        for param in self.teacher_model.parameters():
-            param.requires_grad = False
+        if loss_function != "CrossEntropyWithoutKD":
+            self.teacher_model = load(compile=False)
+            for param in self.teacher_model.parameters():
+                param.requires_grad = False
+        else:
+            self.teacher_model = None
 
         self.tokenizer = AutoTokenizer.from_pretrained(
             model_id, use_fast=True, padding_side="left"
@@ -57,16 +61,19 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         ]
 
     def training_step(self, batch, _batch_idx):
-        input_ids, attention_mask = batch["input_ids"], batch["attention_mask"]
+        input_ids, attention_mask, labels = batch["input_ids"], batch["attention_mask"], batch["labels"]
 
         student_output = self.model(input_ids=input_ids, attention_mask=attention_mask)
 
-        with torch.no_grad():
-            teacher_output = self.teacher_model(
-                input_ids=input_ids, attention_mask=attention_mask
-            )
+        if self.teacher_model is not None:
+            with torch.no_grad():
+                teacher_logits = self.teacher_model(
+                    input_ids=input_ids, attention_mask=attention_mask
+                ).logits
+        else:
+            teacher_logits = None
 
-        loss = self.criterion(teacher_output.logits, student_output.logits)
+        loss = self.criterion(student_output.logits, teacher_logits=teacher_logits, labels=labels)
 
         self.log(
             "train_loss", loss, prog_bar=True, on_step=True, on_epoch=True, logger=True
@@ -104,7 +111,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         ]
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.0015, betas=(0.9, 0.95))
+        return torch.optim.Adam(self.parameters(), lr=0.0001, betas=(0.9, 0.95))
 
     @torch.inference_mode()
     def chat(self, messages: list[Message] = None, prompt: str = None, **kwargs) -> str:
