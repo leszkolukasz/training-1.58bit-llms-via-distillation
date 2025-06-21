@@ -47,15 +47,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
             model_id, use_fast=True, padding_side="left"
         )
 
-        layers_to_quantize = [
-            "o_proj",
-            "q_proj",
-            "k_proj",
-            "v_proj",
-            "gate_proj",
-            "up_proj",
-            "down_proj",
-        ]
+
         self.model, self.quantized_layers = quantize_model(
             base_model, quantization, bitlinear_implementation, layers_to_quantize
         )
@@ -110,7 +102,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         )
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.001)
+        return torch.optim.Adam(self.parameters(), lr=0.001, betas=(0.9, 0.95))
 
     def chat(self, messages: list[Message] = None, prompt: str = None, **kwargs) -> str:
         self.model.eval()
@@ -173,11 +165,11 @@ class QuantizedSmolModel(QuantizedModel):
             loss_function=loss_function,
             model_id=SMOL_MODEL_ID,
             layers_to_quantize=[
-                "o_proj",
-                "q_proj",
-                "k_proj",
-                "v_proj",
-                "gate_proj",
+                # "o_proj",
+                # "q_proj",
+                # "k_proj",
+                # "v_proj",
+                # "gate_proj",
                 "up_proj",
                 "down_proj",
             ],
