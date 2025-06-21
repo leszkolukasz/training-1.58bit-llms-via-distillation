@@ -6,8 +6,7 @@ from lightning.pytorch.demos import WikiText2
 from torch.utils.data import DataLoader, random_split
 from transformers import AutoTokenizer
 
-from src.constants import (AMBER_DATASET_PATH, BATCH_SIZE, QWEN_MODEL_ID,
-                           SMOL_MODEL_ID)
+from src.constants import AMBER_DATASET_PATH, BATCH_SIZE, MAX_SEQUENCE_LENGTH
 from src.models import QUANTIZED_MODELS
 
 
@@ -33,7 +32,9 @@ class AmberDataModule(L.LightningDataModule):
 
         tokenized = self.tokenizer(
             texts,
-            padding="longest",
+            padding="max_length",
+            truncation=True,
+            max_length=MAX_SEQUENCE_LENGTH,
             return_tensors="pt",
         )
 
