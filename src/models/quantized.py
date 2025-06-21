@@ -28,6 +28,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         layers_to_quantize: list[str],
     ):
         super().__init__()
+        self.save_hyperparameters()
 
         def load(compile=True):
             model = AutoModelForCausalLM.from_pretrained(
@@ -46,14 +47,14 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         self.tokenizer = AutoTokenizer.from_pretrained(
             model_id, use_fast=True, padding_side="left"
         )
-
-
         self.model, self.quantized_layers = quantize_model(
             base_model, quantization, bitlinear_implementation, layers_to_quantize
         )
         self.criterion = get_loss_function(loss_function)
 
-        self.save_hyperparameters()
+        self.previous_weights = [
+            layer.weight.data.clone().detach() for layer in self.quantized_layers
+        ]
 
     def training_step(self, batch, _batch_idx):
         input_ids, attention_mask = batch["input_ids"], batch["attention_mask"]
@@ -74,17 +75,14 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         return loss
 
     def backward(self, loss):
-        previous_weights = [
-            layer.weight.data.clone().detach() for layer in self.quantized_layers
-        ]
-
         super().backward(loss)
 
         flip_flop_sum = 0.0
         flip_flop_count = 0
 
         with torch.no_grad():
-            for layer, previous_weight in zip(self.quantized_layers, previous_weights):
+            for layer, previous_weight in zip(self.quantized_layers, self.previous_weights):
+                previous_weight = previous_weight.to(layer.weight.data.device)
                 flip_flop_sum += (
                     layer.weight.data.sign() - previous_weight.sign()
                 ).abs().sum().item() / 2.0
@@ -101,9 +99,14 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
             logger=True,
         )
 
-    def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.001, betas=(0.9, 0.95))
+        self.previous_weights = [
+            layer.weight.data.clone().detach() for layer in self.quantized_layers
+        ]
 
+    def configure_optimizers(self):
+        return torch.optim.Adam(self.parameters(), lr=0.0015, betas=(0.9, 0.95))
+
+    @torch.inference_mode()
     def chat(self, messages: list[Message] = None, prompt: str = None, **kwargs) -> str:
         self.model.eval()
 
@@ -165,11 +168,11 @@ class QuantizedSmolModel(QuantizedModel):
             loss_function=loss_function,
             model_id=SMOL_MODEL_ID,
             layers_to_quantize=[
-                # "o_proj",
-                # "q_proj",
-                # "k_proj",
-                # "v_proj",
-                # "gate_proj",
+                "o_proj",
+                "q_proj",
+                "k_proj",
+                "v_proj",
+                "gate_proj",
                 "up_proj",
                 "down_proj",
             ],

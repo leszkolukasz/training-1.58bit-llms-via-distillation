@@ -18,7 +18,7 @@ def quantize_1b(
     w: torch.Tensor,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     pre_sign = w - w.mean() + EPSILON
-    return pre_sign + (pre_sign.sign() - pre_sign).detach(), None
+    return pre_sign + (pre_sign.sign() - pre_sign).detach(), 1.
 
 
 def quantize_1_58b(
@@ -30,7 +30,7 @@ def quantize_1_58b(
 
 
 def quantize_1b_no_shift(w: torch.Tensor) -> tuple[torch.Tensor, None]:
-    return w + (w.sign() - w).detach(), None
+    return w + (w.sign() - w).detach(), 1.
 
 
 QUANTIZATION_TYPE_TO_FUNCTION: dict[QuantizationType, QuantizationFunctionType] = {
@@ -70,7 +70,7 @@ class OneBitBitLinear(nn.Linear):
     ):
         super().__init__(in_features, out_features, bias)
         self.quantization_fun = quantization_fun
-        self.layer_norm = nn.LayerNorm(out_features)
+        self.layer_norm = nn.LayerNorm(out_features, eps=EPSILON)
 
         self.SVID_initialization()
         
@@ -99,9 +99,10 @@ class BitNetBitLinear(nn.Linear):
         super().__init__(in_features, out_features, bias)
         self.quantization_fun = quantization_fun
         self.activation_bits = activation_bits
+        self.layer_norm = nn.LayerNorm(in_features, eps=EPSILON)
         
     def quantize_activation(self, x: torch.Tensor) -> torch.Tensor:
-        normalized_x = F.layer_norm(x, eps=EPSILON) 
+        normalized_x = self.layer_norm(x)
         gamma = x.abs().max(dim=1, keepdim=True).values.clamp(min=EPSILON)
         Q_b = 2 ** (self.activation_bits - 1)
         return torch.clamp(
@@ -114,6 +115,7 @@ class BitNetBitLinear(nn.Linear):
         quantized_weights, beta = self.quantization_fun(self.weight) 
         quantized_activations, gamma = self.quantize_activation(input)
         scaling_factor = beta * gamma / (2 ** (self.activation_bits -1))
+
         return F.linear(quantized_activations, quantized_weights, self.bias) * scaling_factor
 
 
