@@ -11,7 +11,7 @@ from src.chat import chat_loop
 from src.datamodules import *
 # Required for LightningCLI to detect all models and datamodules
 from src.models import *
-from src.models.quantized import QuantizedQwenModel, QuantizedSmolModel
+from src.models.quantized import QuantizedQwenModel, QuantizedSmolModel, QuantizedModelNoDistill
 
 torch.set_float32_matmul_precision("high")
 
