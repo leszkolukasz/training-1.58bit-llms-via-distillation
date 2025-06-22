@@ -5,8 +5,10 @@ import torch.nn.functional as f
 
 # KL - Kullback-Leibler Divergence
 # CAKL - Confidence-Aware Kullback-Leibler Divergence
-
-LossFunctionType = Literal["CrossEntropy", "KL", "CAKL", "Wasserstein", "CEKL", "CrossEntropyWithoutKD"]
+# CrossEntropyWithoutKD - Cross-Entropy without Knowledge Distillation
+LossFunctionType = Literal[
+    "CrossEntropy", "CrossEntropyWithoutKD", "KL", "CAKL", "Wasserstein"
+]
 
 
 def get_loss_function(loss_type: LossFunctionType):

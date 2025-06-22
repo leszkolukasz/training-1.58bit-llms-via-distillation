@@ -21,7 +21,7 @@ def quantize_1b(
     w: torch.Tensor,
 ) -> tuple[torch.Tensor, torch.Tensor]:
     pre_sign = w - w.mean() + EPSILON
-    return pre_sign + (pre_sign.sign() - pre_sign).detach(), 1.0
+    return pre_sign + (pre_sign.sign() - pre_sign).detach(), w.abs().mean() + EPSILON
 
 
 def quantize_1_58b(
@@ -60,9 +60,7 @@ class FBIBitLinear(nn.Linear):
         quantized_weights, _ = self.quantization_fun(self.weight)
         fbi_weights = self.alpha[None, :] * quantized_weights + self.beta[None, :]
 
-        return F.linear(
-            input, fbi_weights, self.bias
-        )  # TODO: Do we want self.bias here? self.beta kind of acts like one but is not equivalent to an affine shift
+        return F.linear(input, fbi_weights, self.bias)
 
 
 class OneBitBitLinear(nn.Linear):
@@ -113,7 +111,7 @@ class BitNetBitLinear(nn.Linear):
 
     def quantize_activation(self, x: torch.Tensor) -> torch.Tensor:
         normalized_x = self.layer_norm(x)
-        gamma = x.abs().max(dim=1, keepdim=True).values.clamp(min=EPSILON)
+        gamma = x.abs().max(dim=-1, keepdim=True).values.clamp(min=EPSILON)
         Q_b = 2 ** (self.activation_bits - 1)
         return (
             torch.clamp(
@@ -129,10 +127,7 @@ class BitNetBitLinear(nn.Linear):
         quantized_activations, gamma = self.quantize_activation(input)
         scaling_factor = beta * gamma / (2 ** (self.activation_bits - 1))
 
-        return (
-            F.linear(quantized_activations, quantized_weights, self.bias)
-            * scaling_factor
-        )
+        return F.linear(quantized_activations * scaling_factor, quantized_weights, self.bias)
 
 
 IMPLEMENTATION_TYPE_TO_CLASS: dict[ImplementationType, type] = {

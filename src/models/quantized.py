@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from src.constants import EPSILON, QWEN_MODEL_ID, SMOL_MODEL_ID
+from src.constants import EPSILON, QWEN_MODEL_ID, SMOL_MODEL_ID, MAX_SEQUENCE_LENGTH
 from src.layers import ImplementationType, QuantizationType, quantize_model
 from src.loss import LossFunctionType, get_loss_function
 
@@ -53,9 +53,6 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         self.tokenizer = AutoTokenizer.from_pretrained(
             model_id, use_fast=True, padding_side="left"
         )
-        
-        self.loss_function = get_loss_function(loss_function)
-
         self.model, self.quantized_layers = quantize_model(
             base_model, quantization, bitlinear_implementation, layers_to_quantize
         )
@@ -125,8 +122,8 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         ]
 
     def configure_optimizers(self):
-        optimizer = torch.optim.Adam(
-            self.parameters(), lr=3e-4, betas=(0.9, 0.98),
+        optimizer = torch.optim.AdamW(
+            self.parameters(), lr=3e-4, betas=(0.9, 0.95), weight_decay=0.1
         )
         
         T_max = next(
@@ -165,7 +162,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
 
         output = self.model.generate(
             **model_inputs,
-            max_new_tokens=1024,
+            max_new_tokens=MAX_SEQUENCE_LENGTH,
             do_sample=True,
             top_p=0.95,
             temperature=0.1,
@@ -175,7 +172,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         return self.tokenizer.decode(
             output[0], skip_special_tokens=True, clean_up_tokenization_spaces=True
         )
-        
+
 
 class QuantizedQwenModel(QuantizedModel):
     def __init__(
@@ -201,7 +198,7 @@ class QuantizedQwenModel(QuantizedModel):
         )
 
 
-class QuantizedSmolModel(QuantizedModel, L.LightningModule):
+class QuantizedSmolModel(QuantizedModel):
     def __init__(
         self,
         quantization: QuantizationType,
@@ -214,14 +211,13 @@ class QuantizedSmolModel(QuantizedModel, L.LightningModule):
             loss_function=loss_function,
             model_id=SMOL_MODEL_ID,
             layers_to_quantize=[
-                # "o_proj",
-                # "q_proj",
-                # "k_proj",
-                # "v_proj",
-                # "gate_proj",
+                "o_proj",
+                "q_proj",
+                "k_proj",
+                "v_proj",
+                "gate_proj",
                 "up_proj",
                 "down_proj",
-                # "model.layers.11.mlp.down_proj",
             ],
         )
 

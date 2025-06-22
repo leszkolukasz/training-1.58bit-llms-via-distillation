@@ -19,7 +19,15 @@ Available options are:
 - `<dataset_name>`: `WikiText2DataModule`, `AmberDataModule`
 - `<quantization>`: `1b`, `1_58b`, `1b_no_shift`
 - `<impl>`: `FBI`, `OneBit`, `BitNet`
-- `<loss>`: `CrossEntropy`, `KL`, `CAKL`, `Wasserstein`
+- `<loss>`: `CrossEntropy`, `CrossEntropyWithoutKD`, `KL`, `CAKL`, `Wasserstein`
+
+> [!NOTE]
+> As AmberDataset has more than 7TB of data, one should download small portion
+> of it and set `AMBER_DATASET_PATH` constant to the path of the downloaded data.
+
+> [!NOTE]
+> ExampleModel is just for testing pytorch lightning setup and can be used
+> only with WikiText2DataModule and no other options. Consequently, WikiText2DataModule can only be used with ExampleModel.
 
 #### Example
 
