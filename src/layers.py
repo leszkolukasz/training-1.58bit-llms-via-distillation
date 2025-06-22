@@ -127,7 +127,9 @@ class BitNetBitLinear(nn.Linear):
         quantized_activations, gamma = self.quantize_activation(input)
         scaling_factor = beta * gamma / (2 ** (self.activation_bits - 1))
 
-        return F.linear(quantized_activations * scaling_factor, quantized_weights, self.bias)
+        return F.linear(
+            quantized_activations * scaling_factor, quantized_weights, self.bias
+        )
 
 
 IMPLEMENTATION_TYPE_TO_CLASS: dict[ImplementationType, type] = {
@@ -189,16 +191,17 @@ def quantize_model(
 
     return model, quantized_layers
 
+
 if __name__ == "__main__":
-    
+
     w = torch.randn(10, 10)
     q_w, _ = quantize_1b(w)
     assert torch.allclose(q_w, -quantize_1b(-w)[0])
-    
+
     w = torch.tensor([1.0, -2.0, 3.0])
     q_w, scale = quantize_1_58b(w)
     assert torch.allclose(q_w * scale, w.sign(), atol=1e-3)
-    
+
     model = nn.Linear(10, 10)
     quantized, _ = quantize_model(model, "1b", "FBI", ["weight"])
     assert isinstance(quantized.weight, FBIBitLinear)

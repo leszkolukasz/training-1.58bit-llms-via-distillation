@@ -9,6 +9,7 @@ from transformers import AutoTokenizer
 from src.constants import AMBER_DATASET_PATH, BATCH_SIZE, MAX_SEQUENCE_LENGTH
 from src.models import QUANTIZED_MODELS
 
+
 class AmberDataModule(L.LightningDataModule):
     def __init__(self, model_name: str, batch_size: int = BATCH_SIZE):
         super().__init__()
@@ -49,6 +50,8 @@ class AmberDataModule(L.LightningDataModule):
             batch_size=self.batch_size,
             collate_fn=self._collate_fn,
         )
+
+
 class WikiText2DataModule(L.LightningDataModule):
     def __init__(self, batch_size: int = BATCH_SIZE, data_dir: str = "./data"):
         super().__init__()

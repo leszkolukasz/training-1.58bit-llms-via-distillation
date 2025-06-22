@@ -6,7 +6,8 @@ import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from src.constants import EPSILON, QWEN_MODEL_ID, SMOL_MODEL_ID, MAX_SEQUENCE_LENGTH
+from src.constants import (EPSILON, MAX_SEQUENCE_LENGTH, QWEN_MODEL_ID,
+                           SMOL_MODEL_ID)
 from src.layers import ImplementationType, QuantizationType, quantize_model
 from src.loss import LossFunctionType, get_loss_function
 
@@ -125,13 +126,15 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         optimizer = torch.optim.AdamW(
             self.parameters(), lr=3e-4, betas=(0.9, 0.95), weight_decay=0.1
         )
-        
+
         T_max = next(
-                t for t in [
-                    self.trainer.estimated_stepping_batches,
-                    self.trainer.max_steps,
-                    10000,
-                ] if t is not None and t > 0
+            t
+            for t in [
+                self.trainer.estimated_stepping_batches,
+                self.trainer.max_steps,
+                10000,
+            ]
+            if t is not None and t > 0
         )
 
         print(f"T_max: {T_max}")
