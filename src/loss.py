@@ -98,8 +98,7 @@ def wasserstein_loss(student_logits: torch.Tensor, *, teacher_logits: torch.Tens
 
 def cross_entropy_plus_KL(student_logits: torch.Tensor, *, teacher_logits: torch.Tensor,
                         temperature: float=1, lbda: float=1, **kwargs) -> torch.Tensor:
-    teacher_probs = f.softmax(teacher_logits, dim=-1)
-    return f.cross_entropy(student_logits, teacher_probs) + lbda * KL_loss(teacher_logits, student_logits, temperature)
+    return f.cross_entropy(student_logits, teacher_logits) + lbda * KL_loss(teacher_logits, student_logits, temperature)
 
 if __name__ == "__main__":
     # Tests

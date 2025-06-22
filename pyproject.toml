@@ -11,6 +11,7 @@ dependencies = [
     "lightning[extra]>=2.5.1.post0",
     "mlflow>=2.22.1",
     "numpy>=2.2.6",
+    "python-decouple>=3.8",
     "torch>=2.7.1",
     "transformers>=4.52.4",
 ]

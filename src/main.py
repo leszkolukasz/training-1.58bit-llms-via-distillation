@@ -6,13 +6,15 @@ import torch
 from jsonargparse import lazy_instance
 from lightning.pytorch.cli import LightningCLI
 from lightning.pytorch.loggers import MLFlowLogger
-from lightning.pytorch.callbacks import ModelCheckpoint
 
 from src.chat import chat_loop
 from src.datamodules import *
 # Required for LightningCLI to detect all models and datamodules
 from src.models import *
+<<<<<<< HEAD
 from src.models.quantized import QuantizedQwenModel, QuantizedSmolModel
+=======
+>>>>>>> 99b2c1671b5ae25c8efa1d5b229b0a148fadcf4d
 
 torch.set_float32_matmul_precision("high")
 
