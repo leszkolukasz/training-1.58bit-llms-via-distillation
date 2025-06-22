@@ -49,33 +49,6 @@ class AmberDataModule(L.LightningDataModule):
             batch_size=self.batch_size,
             collate_fn=self._collate_fn,
         )
-        
-class AmberDataModuleNoDistill(AmberDataModule):
-    def _collate_fn(self, batch: list[dict]) -> dict:
-        texts = self.detokenizer.batch_decode(
-            [item["token_ids"] for item in batch], skip_special_tokens=True
-        )
-        
-        tokenized = self.tokenizer(
-            texts,
-            padding="max_length",
-            truncation=True,
-            max_length=MAX_SEQUENCE_LENGTH,
-            return_tensors="pt",
-            return_attention_mask=True,
-        )
-
-        input_ids = tokenized["input_ids"]
-        labels = input_ids.clone()
-        labels[:, :-1] = input_ids[:, 1:]  
-        labels[:, -1] = -100 
-        
-        return {
-            "input_ids": input_ids,
-            "attention_mask": tokenized["attention_mask"],
-            "labels": labels
-        }
-
 class WikiText2DataModule(L.LightningDataModule):
     def __init__(self, batch_size: int = BATCH_SIZE, data_dir: str = "./data"):
         super().__init__()

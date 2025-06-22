@@ -125,8 +125,34 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         ]
 
     def configure_optimizers(self):
-        return torch.optim.Adam(self.parameters(), lr=0.0015, betas=(0.9, 0.95))
+        optimizer = torch.optim.Adam(
+            self.parameters(), lr=3e-4, betas=(0.9, 0.98),
+        )
+        
+        T_max = next(
+                t for t in [
+                    self.trainer.estimated_stepping_batches,
+                    self.trainer.max_steps,
+                    10000,
+                ] if t is not None and t > 0
+        )
 
+        print(f"T_max: {T_max}")
+
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            optimizer, T_max=T_max, eta_min=1e-7
+        )
+
+        return {
+            "optimizer": optimizer,
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "interval": "step",
+                "frequency": 1,
+            },
+        }
+
+    @torch.inference_mode()
     def chat(self, messages: list[Message] = None, prompt: str = None, **kwargs) -> str:
         self.model.eval()
 
@@ -150,55 +176,6 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
             output[0], skip_special_tokens=True, clean_up_tokenization_spaces=True
         )
         
-class QuantizedModelNoDistill(QuantizedModel):
-    def __init__(
-        self,
-        quantization: QuantizationType,
-        bitlinear_implementation: ImplementationType,
-        loss_function: LossFunctionType,
-        model_id: str,
-        layers_to_quantize: list[str],
-    ):
-        super().__init__()
-
-        def load(compile=True):
-            model = AutoModelForCausalLM.from_pretrained(
-                model_id, torch_dtype=torch.float32
-            )  # there are problems with bfloat16
-
-            if compile:
-                model = torch.compile(model, mode="max-autotune", fullgraph=True)
-            return model
-
-        base_model = load(False)
-
-        for param in self.teacher_model.parameters():
-            param.requires_grad = False
-
-        self.tokenizer = AutoTokenizer.from_pretrained(
-            model_id, use_fast=True, padding_side="left"
-        )
-
-        self.loss_function = get_loss_function(loss_function)
-        
-        self.model, self.quantized_layers = quantize_model(
-            base_model, quantization, bitlinear_implementation, layers_to_quantize
-        )
-
-        self.save_hyperparameters()
-
-    def training_step(self, batch, _batch_idx):
-        input_ids, attention_mask, labels = batch["input_ids"], batch["attention_mask"], batch["labels"]
-
-        output = self.model(input_ids=input_ids, attention_mask=attention_mask, labels=labels)
-
-        loss = output.loss
-
-        self.log(
-            "train_loss", loss, prog_bar=True, on_step=True, on_epoch=True, logger=True
-        )
-
-        return loss
 
 class QuantizedQwenModel(QuantizedModel):
     def __init__(
@@ -245,30 +222,6 @@ class QuantizedSmolModel(QuantizedModel, L.LightningModule):
                 "up_proj",
                 "down_proj",
                 # "model.layers.11.mlp.down_proj",
-            ],
-        )
-        
-class QuantizedSmolModelNoDistill(QuantizedModelNoDistill):
-    def __init__(
-        self,
-        quantization: QuantizationType,
-        bitlinear_implementation: ImplementationType,
-        loss_function: LossFunctionType,
-    ):
-        super().__init__(
-            quantization=quantization,
-            bitlinear_implementation=bitlinear_implementation,
-            loss_function=loss_function,
-            model_id=SMOL_MODEL_ID,
-            layers_to_quantize=[
-                # "o_proj",
-                # "q_proj",
-                # "k_proj",
-                # "v_proj",
-                # "gate_proj",
-                # "up_proj",
-                # "down_proj",
-                "model.layers.11.mlp.down_proj",
             ],
         )
 
