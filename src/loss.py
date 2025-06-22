@@ -54,13 +54,14 @@ def KL_loss(
     temperature: float = 1.0,
     **_kwargs,
 ) -> torch.Tensor:
-    teacher_probs = f.softmax(teacher_logits / temperature, dim=-1)
+    teacher_log_probs = f.log_softmax(teacher_logits / temperature, dim=-1)
     student_log_probs = f.log_softmax(student_logits / temperature, dim=-1)
     return (
         f.kl_div(
             student_log_probs.reshape((-1, student_log_probs.size(-1))),
-            teacher_probs.reshape((-1, teacher_probs.size(-1))),
+            teacher_log_probs.reshape((-1, teacher_log_probs.size(-1))),
             reduction="batchmean",
+            log_target=True,
         )
         * temperature**2
     )
