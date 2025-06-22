@@ -4,7 +4,6 @@ import datetime
 import mlflow
 import torch
 from jsonargparse import lazy_instance
-from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.cli import LightningCLI
 from lightning.pytorch.loggers import MLFlowLogger
 
@@ -12,8 +11,6 @@ from src.chat import chat_loop
 from src.datamodules import *
 # Required for LightningCLI to detect all models and datamodules
 from src.models import *
-from src.models.quantized import (QuantizedModelNoDistill, QuantizedQwenModel,
-                                  QuantizedSmolModel)
 
 torch.set_float32_matmul_precision("high")
 
