@@ -125,11 +125,17 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         optimizer = torch.optim.AdamW(
             self.parameters(), lr=3e-4, betas=(0.9, 0.95), weight_decay=0.1
         )
-        T_max = (
-            self.trainer.estimated_stepping_batches
-            if self.trainer.estimated_stepping_batches > 0
-            else 10000
+        
+        T_max = next(
+                t for t in [
+                    self.trainer.estimated_stepping_batches,
+                    self.trainer.max_steps,
+                    10000,
+                ] if t is not None and t > 0
         )
+
+        print(f"T_max: {T_max}")
+
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             optimizer, T_max=T_max, eta_min=1e-7
         )

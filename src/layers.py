@@ -89,9 +89,11 @@ class OneBitBitLinear(nn.Linear):
 
     def forward(self, input: torch.Tensor) -> torch.Tensor:
         quantized_weights, _ = self.quantization_fun(self.weight)
-        y = torch.mul(
-            F.linear(torch.mul(input, self.h), quantized_weights, self.bias), self.g
-        )
+        y = F.linear(input * self.h, quantized_weights) * self.g
+
+        if self.bias is not None:
+            y += self.bias
+
         return self.layer_norm(y)
 
 
