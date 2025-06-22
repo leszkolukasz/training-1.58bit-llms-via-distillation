@@ -53,7 +53,7 @@ def KL_loss(
     teacher_probs = f.softmax(teacher_logits / temperature, dim=1)
     student_log_probs = f.log_softmax(student_logits / temperature, dim=1)
     return (
-        f.kl_div(student_log_probs.reshape((-1, student_log_probs.size(-1))), teacher_probs.reshape(-1, teacher_probs.size(-1)), reduction="batchmean")
+        f.kl_div(student_log_probs.reshape((-1, student_log_probs.size(-1))), teacher_probs.reshape((-1, teacher_probs.size(-1))), reduction="batchmean")
         * temperature ** 2
     )
 
@@ -67,11 +67,11 @@ def CAKL_loss(
     teacher_probs = f.softmax(teacher_logits / temperature, dim=1)
     student_log_probs = f.log_softmax(student_logits / temperature, dim=1)
     teacher_wages = torch.max(teacher_probs, dim=-1).values
-    waged_dkl = (teacher_wages * f.kl_div(student_log_probs.reshape((-1, student_log_probs.size(-1))), teacher_probs.reshape(-1, teacher_probs.size(-1)),
+    waged_dkl = (teacher_wages * f.kl_div(student_log_probs.reshape((-1, student_log_probs.size(-1))), teacher_probs.reshape((-1, teacher_probs.size(-1))),
                                             reduction="none").sum(dim=-1)).mean(dim=0)
     return waged_dkl * temperature ** 2
     
-def wasserstein_loss(teacher_logits: torch.Tensor, student_logits: torch.Tensor, 
+def wasserstein_loss(student_logits: torch.Tensor, teacher_logits: torch.Tensor,
                     temperature: float=1.0) -> torch.Tensor:
     teacher_cdf = f.softmax(teacher_logits / temperature, dim=-1).cumsum(dim=-1)
     student_cdf = f.softmax(student_logits / temperature, dim=-1).cumsum(dim=-1)
@@ -87,4 +87,4 @@ if __name__ == "__main__":
     batch_size, vocab_size = 8, 200
     teacher_logits = torch.randn(batch_size, vocab_size, dtype=torch.float16)
     student_logits = torch.randn(batch_size, vocab_size, dtype=torch.float16)
-    print(get_loss_function("KL")(student_logits, teacher_logits=teacher_logits))
+    print(get_loss_function("Wasserstein")(student_logits, teacher_logits=teacher_logits))
