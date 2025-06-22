@@ -1,14 +1,19 @@
 from typing import Literal
-import torch 
+
+import torch
 import torch.nn.functional as f
 
 # KL - Kullback-Leibler Divergence
 # CAKL - Confidence-Aware Kullback-Leibler Divergence
-LossFunctionType = Literal["CrossEntropy", "KL", "CAKL", "Wasserstein", "CEKL"]
+
+LossFunctionType = Literal["CrossEntropy", "KL", "CAKL", "Wasserstein", "CEKL", "CrossEntropyWithoutKD"]
+
 
 def get_loss_function(loss_type: LossFunctionType):
     if loss_type == "CrossEntropy":
         return cross_entropy
+    elif loss_type == "CrossEntropyWithoutKD":
+        return cross_entropy_without_kd
     elif loss_type == "KL":
         return KL_loss
     elif loss_type == "CAKL":
@@ -20,17 +25,45 @@ def get_loss_function(loss_type: LossFunctionType):
     else:
         raise ValueError(f"Unsupported loss type: {loss_type}")
 
-def cross_entropy(teacher_logits: torch.Tensor, student_logits: torch.Tensor) -> torch.Tensor:
+def cross_entropy(
+    student_logits: torch.Tensor, *, teacher_logits: torch.Tensor, **kwargs
+) -> torch.Tensor:
     teacher_probs = f.softmax(teacher_logits, dim=-1)
-    return f.cross_entropy(student_logits.reshape((-1, student_logits.size(-1))),
-                            teacher_probs.reshape((-1, teacher_probs.size(-1))))
+    return f.cross_entropy(
+        student_logits.reshape((-1, student_logits.size(-1))),
+        teacher_probs.reshape((-1, teacher_probs.size(-1))),
+    )
 
-def KL_loss(teacher_logits: torch.Tensor, student_logits: torch.Tensor, temperature: float=1.0) -> torch.Tensor:
-    teacher_probs = f.softmax(teacher_logits / temperature, dim=-1)
-    student_log_probs = f.log_softmax(student_logits / temperature, dim=-1)
-    return f.kl_div(student_log_probs, teacher_probs, reduction="batchmean") * temperature ** 2
 
-def CAKL_loss(teacher_logits: torch.Tensor, student_logits: torch.Tensor, temperature: float=1.0) -> torch.Tensor:
+def cross_entropy_without_kd(
+    student_logits: torch.Tensor, *, labels: torch.Tensor, **kwargs
+) -> torch.Tensor:
+    return f.cross_entropy(
+        student_logits.reshape((-1, student_logits.size(-1))), labels.reshape(-1)
+    )
+
+
+def KL_loss(
+    student_logits: torch.Tensor,
+    *,
+    teacher_logits: torch.Tensor,
+    temperature: float = 1.0,
+    **kwargs,
+) -> torch.Tensor:
+    teacher_probs = f.softmax(teacher_logits / temperature, dim=1)
+    student_log_probs = f.log_softmax(student_logits / temperature, dim=1)
+    return (
+        f.kl_div(student_log_probs, teacher_probs, reduction="batchmean")
+        * temperature**2
+    )
+
+def CAKL_loss(
+    student_logits: torch.Tensor,
+    *,
+    teacher_logits: torch.Tensor,
+    temperature: float = 1.0,
+    **kwargs,
+) -> torch.Tensor:
     teacher_probs = f.softmax(teacher_logits / temperature, dim=1)
     student_log_probs = f.log_softmax(student_logits / temperature, dim=1)
     teacher_wages = torch.max(teacher_probs, dim=-1).values
@@ -48,7 +81,7 @@ def cross_entropy_plus_KL(teacher_logits: torch.Tensor, student_logits: torch.Te
                         temperature: float=1, lbda: float=1) -> torch.Tensor:
     teacher_probs = f.softmax(teacher_logits, dim=-1)
     return f.cross_entropy(student_logits, teacher_probs) + lbda * KL_loss(teacher_logits, student_logits, temperature)
-    
+
 if __name__ == "__main__":
     # Tests
     batch_size, vocab_size = 8, 200

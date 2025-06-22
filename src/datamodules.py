@@ -38,8 +38,9 @@ class AmberDataModule(L.LightningDataModule):
         )
 
         return {
-            "input_ids": tokenized["input_ids"],
+            "input_ids": tokenized["input_ids"][..., :-1],
             "attention_mask": tokenized["attention_mask"],
+            "labels": tokenized["input_ids"][..., 1:],
         }
 
     def train_dataloader(self):

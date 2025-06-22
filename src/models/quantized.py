@@ -28,6 +28,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         layers_to_quantize: list[str],
     ):
         super().__init__()
+        self.save_hyperparameters()
 
         def load(compile=True):
             model = AutoModelForCausalLM.from_pretrained(
@@ -38,10 +39,16 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
                 model = torch.compile(model, mode="max-autotune", fullgraph=True)
             return model
 
-        self.teacher_model, base_model = load(False), load(False)
+        base_model = load(compile=False)
 
-        for param in self.teacher_model.parameters():
-            param.requires_grad = False
+        if loss_function != "CrossEntropyWithoutKD":
+            self.teacher_model = load(compile=False)
+            for param in self.teacher_model.parameters():
+                param.requires_grad = False
+
+            self.teacher_model.config.use_cache = True
+        else:
+            self.teacher_model = None
 
         self.tokenizer = AutoTokenizer.from_pretrained(
             model_id, use_fast=True, padding_side="left"
@@ -54,19 +61,31 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         )
         self.criterion = get_loss_function(loss_function)
 
-        self.save_hyperparameters()
+        self.previous_weights = [
+            layer.weight.data.clone().detach() for layer in self.quantized_layers
+        ]
 
     def training_step(self, batch, _batch_idx):
-        input_ids, attention_mask = batch["input_ids"], batch["attention_mask"]
+        input_ids, attention_mask, labels = (
+            batch["input_ids"],
+            batch["attention_mask"],
+            batch["labels"],
+        )
 
         student_output = self.model(input_ids=input_ids, attention_mask=attention_mask)
 
-        with torch.no_grad():
-            teacher_output = self.teacher_model(
-                input_ids=input_ids, attention_mask=attention_mask
-            )
+        if self.teacher_model is not None:
+            self.teacher_model.eval()
+            with torch.no_grad():
+                teacher_logits = self.teacher_model(
+                    input_ids=input_ids, attention_mask=attention_mask
+                ).logits
+        else:
+            teacher_logits = None
 
-        loss = self.criterion(teacher_output.logits, student_output.logits)
+        loss = self.criterion(
+            student_output.logits, teacher_logits=teacher_logits, labels=labels
+        )
 
         self.log(
             "train_loss", loss, prog_bar=True, on_step=True, on_epoch=True, logger=True
@@ -75,17 +94,16 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         return loss
 
     def backward(self, loss):
-        previous_weights = [
-            layer.weight.data.clone().detach() for layer in self.quantized_layers
-        ]
-
         super().backward(loss)
 
         flip_flop_sum = 0.0
         flip_flop_count = 0
 
         with torch.no_grad():
-            for layer, previous_weight in zip(self.quantized_layers, previous_weights):
+            for layer, previous_weight in zip(
+                self.quantized_layers, self.previous_weights
+            ):
+                previous_weight = previous_weight.to(layer.weight.data.device)
                 flip_flop_sum += (
                     layer.weight.data.sign() - previous_weight.sign()
                 ).abs().sum().item() / 2.0
@@ -101,6 +119,10 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
             on_epoch=True,
             logger=True,
         )
+
+        self.previous_weights = [
+            layer.weight.data.clone().detach() for layer in self.quantized_layers
+        ]
 
     def configure_optimizers(self):
         return torch.optim.Adam(self.parameters(), lr=0.0015, betas=(0.9, 0.95))
@@ -220,9 +242,9 @@ class QuantizedSmolModel(QuantizedModel, L.LightningModule):
                 # "k_proj",
                 # "v_proj",
                 # "gate_proj",
-                # "up_proj",
-                # "down_proj",
-                "model.layers.11.mlp.down_proj",
+                "up_proj",
+                "down_proj",
+                # "model.layers.11.mlp.down_proj",
             ],
         )
         

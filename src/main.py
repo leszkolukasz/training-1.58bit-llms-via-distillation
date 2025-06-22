@@ -1,11 +1,12 @@
 import argparse
 import datetime
 
-import torch
 import mlflow
+import torch
 from jsonargparse import lazy_instance
 from lightning.pytorch.cli import LightningCLI
 from lightning.pytorch.loggers import MLFlowLogger
+from lightning.pytorch.callbacks import ModelCheckpoint
 
 from src.chat import chat_loop
 from src.datamodules import *
@@ -25,18 +26,19 @@ mlflow.set_experiment(experiment_name)
 
 client = mlflow.tracking.MlflowClient()
 
+
 def get_or_create_run(run_name: str):
     runs = client.search_runs(
         experiment_ids=[client.get_experiment_by_name(experiment_name).experiment_id],
-        filter_string=f"tags.mlflow.runName = '{run_name}'"
+        filter_string=f"tags.mlflow.runName = '{run_name}'",
     )
-    
+
     for r in runs:
         return r
 
     return client.create_run(
         experiment_id=client.get_experiment_by_name(experiment_name).experiment_id,
-        tags={"mlflow.runName": run_name}
+        tags={"mlflow.runName": run_name},
     )
 
 
@@ -47,6 +49,7 @@ class MyLightningCLI(LightningCLI):
             "data.init_args.model_name",
             compute_fn=lambda a: a.split(".")[-1],
         )
+
 
 def main():
     parser = argparse.ArgumentParser(add_help=False)
@@ -111,7 +114,8 @@ def main():
             "devices": -1,
             "precision": "bf16-mixed",
             "fast_dev_run": False,
-            # "gradient_clip_val": 0.5,
+            "gradient_clip_val": 1.0,
+            "accumulate_grad_batches": 16 // BATCH_SIZE + 1,
             "deterministic": True,
             "logger": lazy_instance(
                 MLFlowLogger,
