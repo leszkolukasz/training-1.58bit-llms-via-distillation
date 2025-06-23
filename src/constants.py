@@ -8,4 +8,6 @@ SMOL_MODEL_ID = "HuggingFaceTB/SmolLM2-135M-Instruct"
 AMBER_DATASET_PATH = config("AMBER_DATASET_PATH", default="./data/amber")
 EPSILON = 1e-6
 BATCH_SIZE = config("BATCH_SIZE", default=4, cast=int)
-MAX_SEQUENCE_LENGTH = 1024
+MAX_SEQUENCE_LENGTH = config("MAX_SEQUENCE_LENGTH", default=1024, cast=int)
+SAVE_EVERY_N_STEPS = 500 # step is a batch I think
+ACCUMULATE_GRADIENT_FOR_N_SAMPLES = 16
