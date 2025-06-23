@@ -9,5 +9,5 @@ AMBER_DATASET_PATH = config("AMBER_DATASET_PATH", default="./data/amber")
 EPSILON = 1e-6
 BATCH_SIZE = config("BATCH_SIZE", default=4, cast=int)
 MAX_SEQUENCE_LENGTH = config("MAX_SEQUENCE_LENGTH", default=1024, cast=int)
-SAVE_EVERY_N_STEPS = 500 # step is a batch I think
+SAVE_EVERY_N_STEPS = 300 # step is when gradient is accumulated
 ACCUMULATE_GRADIENT_FOR_N_SAMPLES = 16

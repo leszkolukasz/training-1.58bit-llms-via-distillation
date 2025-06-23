@@ -57,6 +57,14 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         self.model, self.quantized_layers = quantize_model(
             base_model, quantization, bitlinear_implementation, layers_to_quantize
         )
+
+        # TODO: do wee need this?
+        for full_name, module in self.model.named_modules():
+            name = full_name.split(".")[-1]
+            if name not in layers_to_quantize:
+                for param in module.parameters():
+                    nn.init.normal_(param)
+
         self.criterion = get_loss_function(loss_function)
 
         self.previous_weights = [
