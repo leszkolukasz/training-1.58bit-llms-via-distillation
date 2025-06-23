@@ -92,9 +92,11 @@ def CAKL_loss(student_logits: torch.Tensor,
     
 def wasserstein_loss(student_logits: torch.Tensor, *, teacher_logits: torch.Tensor, 
                     temperature: float=1.0, **kwargs) -> torch.Tensor:
-    teacher_cdf = f.softmax(teacher_logits / temperature, dim=-1).cumsum(dim=-1)
-    student_cdf = f.softmax(student_logits / temperature, dim=-1).cumsum(dim=-1)
-    return torch.abs(teacher_cdf.reshape((-1, teacher_cdf.size(-1))) - student_cdf.reshape((-1, student_cdf.size(-1)))).sum(dim=-1).mean(dim=0)
+    teacher_probs = f.softmax(teacher_logits / temperature, dim=-1)
+    student_probs = f.softmax(student_logits / temperature, dim=-1)
+    teacher_probs_sorted = torch.sort(teacher_probs, dim=-1, descending=True)[0]
+    student_probs_sorted = torch.sort(student_probs, dim=-1, descending=True)[0]
+    return torch.abs(teacher_probs_sorted.reshape((-1, teacher_probs_sorted.size(-1))) - student_probs_sorted.reshape((-1, student_probs_sorted.size(-1)))).sum(dim=-1).mean(dim=0)
 
 def cross_entropy_plus_KL(student_logits: torch.Tensor, *, teacher_logits: torch.Tensor,
                         temperature: float=1, lbda: float=1, **kwargs) -> torch.Tensor:
@@ -103,6 +105,7 @@ def cross_entropy_plus_KL(student_logits: torch.Tensor, *, teacher_logits: torch
 if __name__ == "__main__":
     # Tests
     batch_size, vocab_size = 8, 200
+    torch.manual_seed(42)
     teacher_logits = torch.randn(batch_size, vocab_size, dtype=torch.float16)
     student_logits = torch.randn(batch_size, vocab_size, dtype=torch.float16)
-    print(get_loss_function("CAKL")(student_logits, teacher_logits=teacher_logits))
+    print(get_loss_function("Wasserstein")(student_logits, teacher_logits=teacher_logits))
