@@ -17,6 +17,7 @@ class ChatMixin:
         raise NotImplementedError("Subclasses must implement this method.")
 
 
+# NOTE: should be inherited before LightningModule
 class LogArtifactMixin:
     def on_fit_end(self):
         super().on_fit_end()
