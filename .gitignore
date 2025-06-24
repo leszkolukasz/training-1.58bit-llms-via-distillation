@@ -1,4 +1,5 @@
 data
+benchmarks
 artifacts
 mlruns
 _build
