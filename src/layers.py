@@ -165,7 +165,9 @@ def quantize_model(
     for full_name, module in model.named_modules():
         name = full_name.split(".")[-1]
 
-        if isinstance(module, nn.Linear) and name in layers_to_quantize:
+        if isinstance(module, nn.Linear) and (
+            name in layers_to_quantize or full_name in layers_to_quantize
+        ):
             in_features = module.in_features
             out_features = module.out_features
             bias = module.bias is not None

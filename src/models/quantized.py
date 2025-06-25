@@ -6,8 +6,8 @@ import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from src.constants import (EPSILON, INITIAL_LR, MAX_SEQUENCE_LENGTH,
-                           QWEN_MODEL_ID, SMOL_MODEL_ID)
+from src.constants import (EPSILON, INITIAL_LR, LAYERS_LIM_TOP_P,
+                           MAX_SEQUENCE_LENGTH, QWEN_MODEL_ID, SMOL_MODEL_ID)
 from src.layers import ImplementationType, QuantizationType, quantize_model
 from src.loss import LossFunctionType, get_loss_function
 from src.utils import get_grad_norm
@@ -249,20 +249,23 @@ class QuantizedSmolModel(QuantizedModel):
         loss_function: LossFunctionType,
         lr: float = INITIAL_LR,
     ):
+        # read from file
+        layers_by_LIM = []
+
+        with open("data/smol_layers_sorted_by_LIM.txt", "r", encoding="utf-8") as f:
+            for line in f:
+                layers_by_LIM.append(line.strip())
+
+        layers_by_LIM = list(filter(lambda x: x not in ["lm_head"], layers_by_LIM))
+
         super().__init__(
             quantization=quantization,
             bitlinear_implementation=bitlinear_implementation,
             loss_function=loss_function,
             model_id=SMOL_MODEL_ID,
             lr=lr,
-            layers_to_quantize=[
-                "o_proj",
-                "q_proj",
-                "k_proj",
-                "v_proj",
-                "gate_proj",
-                "up_proj",
-                "down_proj",
+            layers_to_quantize=layers_by_LIM[
+                : int(LAYERS_LIM_TOP_P * len(layers_by_LIM))
             ],
         )
 
