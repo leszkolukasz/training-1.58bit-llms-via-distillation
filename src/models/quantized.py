@@ -58,6 +58,8 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
             base_model, quantization, bitlinear_implementation, layers_to_quantize
         )
 
+        self.model.gradient_checkpointing_enable()
+
         # TODO: do wee need this?
         for full_name, module in self.model.named_modules():
             name = full_name.split(".")[-1]
