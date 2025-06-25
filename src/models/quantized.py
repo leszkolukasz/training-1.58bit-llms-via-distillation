@@ -7,7 +7,7 @@ import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
 from src.constants import (EPSILON, MAX_SEQUENCE_LENGTH, QWEN_MODEL_ID,
-                           SMOL_MODEL_ID)
+                           SMOL_MODEL_ID, INITIAL_LR)
 from src.layers import ImplementationType, QuantizationType, quantize_model
 from src.loss import LossFunctionType, get_loss_function
 from src.utils import get_grad_norm
@@ -20,6 +20,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
     model: AutoModelForCausalLM
     criterion: Callable[[torch.Tensor, torch.Tensor], torch.Tensor]
     quantized_layers: list[nn.Linear]
+    initial_lr: float
 
     def __init__(
         self,
@@ -28,9 +29,12 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         loss_function: LossFunctionType,
         model_id: str,
         layers_to_quantize: list[str],
+        lr: float = INITIAL_LR
     ):
         super().__init__()
         self.save_hyperparameters()
+
+        self.initial_lr = lr
 
         def load(compile=True):
             model = AutoModelForCausalLM.from_pretrained(
@@ -100,6 +104,10 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
             "train_loss", loss, prog_bar=True, on_step=True, on_epoch=True, logger=True
         )
 
+        self.log(
+            "step", int(self.global_step), prog_bar=True, logger = False
+        )
+
         return loss
 
     def backward(self, loss):
@@ -156,7 +164,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
-            self.parameters(), lr=3e-4, betas=(0.9, 0.98), weight_decay=0.1
+            self.parameters(), lr=self.initial_lr, betas=(0.9, 0.98), weight_decay=0.1
         )
 
         T_max = next(
@@ -215,12 +223,14 @@ class QuantizedQwenModel(QuantizedModel):
         quantization: QuantizationType,
         bitlinear_implementation: ImplementationType,
         loss_function: LossFunctionType,
+        lr: float = INITIAL_LR
     ):
         super().__init__(
             quantization=quantization,
             bitlinear_implementation=bitlinear_implementation,
             loss_function=loss_function,
             model_id=QWEN_MODEL_ID,
+            lr=lr,
             layers_to_quantize=[
                 "o_proj",
                 "q_proj",
@@ -239,12 +249,14 @@ class QuantizedSmolModel(QuantizedModel):
         quantization: QuantizationType,
         bitlinear_implementation: ImplementationType,
         loss_function: LossFunctionType,
+        lr: float = INITIAL_LR
     ):
         super().__init__(
             quantization=quantization,
             bitlinear_implementation=bitlinear_implementation,
             loss_function=loss_function,
             model_id=SMOL_MODEL_ID,
+            lr=lr,
             layers_to_quantize=[
                 "o_proj",
                 "q_proj",

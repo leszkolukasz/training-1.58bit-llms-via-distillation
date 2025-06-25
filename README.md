@@ -8,6 +8,7 @@ To train, execute the following command:
 uv run python -m src.main fit
   --model <model_name>
   --data <dataset_name>
+  --data.chunks <chunk_ids_to_load> (optional, by default loads all chunks, e.g. "0", "0,2")
   --model.quantization <quantization>
   --model.bitlinear_implementation <impl>
   --model.loss_function <loss>

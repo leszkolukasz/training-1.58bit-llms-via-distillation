@@ -62,6 +62,7 @@ def main():
     parser.add_argument("--model.quantization", type=str, required=False)
     parser.add_argument("--model.bitlinear_implementation", type=str, required=False)
     parser.add_argument("--model.loss_function", type=str, required=False)
+    parser.add_argument("--model.lr", type=float, required=False)
     parser.add_argument("--ckpt_path", type=str, required=False)
 
     args, _ = parser.parse_known_args()
@@ -71,6 +72,7 @@ def main():
     bitlinear_implementation = vars(args)["model.bitlinear_implementation"]
     loss_function = vars(args)["model.loss_function"]
     checkpoint_path = args.ckpt_path
+    initial_lr = vars(args)["model.lr"]
 
     if args.command == "chat":
         if model_name not in QUANTIZED_MODELS:
@@ -102,6 +104,9 @@ def main():
             f"quant_{quantization}_impl_{bitlinear_implementation}_loss_{loss_function}"
         )
 
+        if initial_lr is not None:
+            run_name = run_name + f"_lr_{str(initial_lr)}"
+            
     run = get_or_create_run(run_name)
 
     MyLightningCLI(
