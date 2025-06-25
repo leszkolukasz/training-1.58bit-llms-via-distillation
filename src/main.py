@@ -117,6 +117,7 @@ def main():
             "gradient_clip_val": 1.0,
             "accumulate_grad_batches": (ACCUMULATE_GRADIENT_FOR_N_SAMPLES + BATCH_SIZE - 1) // BATCH_SIZE,
             "deterministic": True,
+            "log_every_n_steps": 1,
             "logger": lazy_instance(
                 MLFlowLogger,
                 experiment_name="nlp_project",

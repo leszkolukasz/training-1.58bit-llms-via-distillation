@@ -47,7 +47,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
             for param in self.teacher_model.parameters():
                 param.requires_grad = False
 
-            self.teacher_model.config.use_cache = True
+            self.teacher_model.config.use_cache = False
         else:
             self.teacher_model = None
 
@@ -118,7 +118,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         flip_flop_ratio = flip_flop_sum / (flip_flop_count + EPSILON)
 
         self.log(
-            "flip_flop_ratio",
+            "flip_flop",
             flip_flop_ratio,
             prog_bar=True,
             on_step=True,
@@ -129,6 +129,16 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         self.previous_weights = [
             layer.weight.data.clone().detach() for layer in self.quantized_layers
         ]
+
+        lr = self.trainer.lr_scheduler_configs[0].scheduler.get_last_lr()[0]
+
+        self.log(
+            "lr",
+            lr,
+            prog_bar=True,
+            on_step=True,
+            logger=True,
+        )
 
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
@@ -222,11 +232,11 @@ class QuantizedSmolModel(QuantizedModel):
             loss_function=loss_function,
             model_id=SMOL_MODEL_ID,
             layers_to_quantize=[
-                # "o_proj",
-                # "q_proj",
-                # "k_proj",
-                # "v_proj",
-                # "gate_proj",
+                "o_proj",
+                "q_proj",
+                "k_proj",
+                "v_proj",
+                "gate_proj",
                 "up_proj",
                 "down_proj",
             ],
