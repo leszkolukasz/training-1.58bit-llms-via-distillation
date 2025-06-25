@@ -4,15 +4,16 @@ import datetime
 import mlflow
 import torch
 from jsonargparse import lazy_instance
+from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.cli import LightningCLI
 from lightning.pytorch.loggers import MLFlowLogger
-from lightning.pytorch.callbacks import ModelCheckpoint
 
 from src.chat import chat_loop
+from src.constants import (ACCUMULATE_GRADIENT_FOR_N_SAMPLES, BATCH_SIZE,
+                           SAVE_EVERY_N_STEPS)
 from src.datamodules import *
 # Required for LightningCLI to detect all models and datamodules
 from src.models import *
-from src.constants import ACCUMULATE_GRADIENT_FOR_N_SAMPLES, BATCH_SIZE, SAVE_EVERY_N_STEPS
 
 torch.set_float32_matmul_precision("high")
 
@@ -61,6 +62,7 @@ def main():
     parser.add_argument("--model.quantization", type=str, required=False)
     parser.add_argument("--model.bitlinear_implementation", type=str, required=False)
     parser.add_argument("--model.loss_function", type=str, required=False)
+    parser.add_argument("--model.lr", type=float, required=False)
     parser.add_argument("--ckpt_path", type=str, required=False)
 
     args, _ = parser.parse_known_args()
@@ -70,6 +72,7 @@ def main():
     bitlinear_implementation = vars(args)["model.bitlinear_implementation"]
     loss_function = vars(args)["model.loss_function"]
     checkpoint_path = args.ckpt_path
+    initial_lr = vars(args)["model.lr"]
 
     if args.command == "chat":
         if model_name not in QUANTIZED_MODELS:
@@ -101,6 +104,9 @@ def main():
             f"quant_{quantization}_impl_{bitlinear_implementation}_loss_{loss_function}"
         )
 
+        if initial_lr is not None:
+            run_name = run_name + f"_lr_{str(initial_lr)}"
+            
     run = get_or_create_run(run_name)
 
     MyLightningCLI(
@@ -115,7 +121,10 @@ def main():
             "precision": "bf16-mixed",
             "fast_dev_run": False,
             "gradient_clip_val": 1.0,
-            "accumulate_grad_batches": (ACCUMULATE_GRADIENT_FOR_N_SAMPLES + BATCH_SIZE - 1) // BATCH_SIZE,
+            "accumulate_grad_batches": (
+                ACCUMULATE_GRADIENT_FOR_N_SAMPLES + BATCH_SIZE - 1
+            )
+            // BATCH_SIZE,
             "deterministic": True,
             "log_every_n_steps": 1,
             "logger": lazy_instance(
@@ -128,11 +137,11 @@ def main():
             ),
             "callbacks": [
                 ModelCheckpoint(
-                    save_top_k=1, # this will save all checkpoints, by default only last is saved
+                    save_top_k=1,  # this will save all checkpoints, by default only last is saved
                     every_n_train_steps=SAVE_EVERY_N_STEPS,
                     save_on_train_epoch_end=False,
                 )
-            ]
+            ],
         },
     )
 
