@@ -127,7 +127,7 @@ def main():
             ),
             "callbacks": [
                 ModelCheckpoint(
-                    save_top_k=-1, # this will save all checkpoints, by default only last is saved
+                    save_top_k=1, # this will save all checkpoints, by default only last is saved
                     every_n_train_steps=SAVE_EVERY_N_STEPS,
                     save_on_train_epoch_end=False,
                 )

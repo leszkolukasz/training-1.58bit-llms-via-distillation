@@ -5,6 +5,7 @@ mlruns
 _build
 notes.txt
 .env*
+.env.local
 
 # Created by https://www.toptal.com/developers/gitignore/api/latex,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=latex,python
