@@ -15,7 +15,7 @@ for lr in "${lrs[@]}"; do
     --model QuantizedSmolModel \
     --data AmberDataModule \
     --data.chunks "2" \
-    --trainer.max_steps 1000 \
+    --trainer.max_steps 3000 \
     --model.quantization "$quantization" \
     --model.bitlinear_implementation "$bitlinear" \
     --model.loss_function "$loss_function" \

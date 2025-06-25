@@ -106,7 +106,7 @@ def main():
 
         if initial_lr is not None:
             run_name = run_name + f"_lr_{str(initial_lr)}"
-            
+
     run = get_or_create_run(run_name)
 
     MyLightningCLI(

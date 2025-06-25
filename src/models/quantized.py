@@ -6,8 +6,8 @@ import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from src.constants import (EPSILON, MAX_SEQUENCE_LENGTH, QWEN_MODEL_ID,
-                           SMOL_MODEL_ID, INITIAL_LR)
+from src.constants import (EPSILON, INITIAL_LR, MAX_SEQUENCE_LENGTH,
+                           QWEN_MODEL_ID, SMOL_MODEL_ID)
 from src.layers import ImplementationType, QuantizationType, quantize_model
 from src.loss import LossFunctionType, get_loss_function
 from src.utils import get_grad_norm
@@ -29,7 +29,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
         loss_function: LossFunctionType,
         model_id: str,
         layers_to_quantize: list[str],
-        lr: float = INITIAL_LR
+        lr: float = INITIAL_LR,
     ):
         super().__init__()
         self.save_hyperparameters()
@@ -104,9 +104,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
             "train_loss", loss, prog_bar=True, on_step=True, on_epoch=True, logger=True
         )
 
-        self.log(
-            "step", int(self.global_step), prog_bar=True, logger = False
-        )
+        self.log("step", int(self.global_step), prog_bar=True, logger=False)
 
         return loss
 
@@ -223,7 +221,7 @@ class QuantizedQwenModel(QuantizedModel):
         quantization: QuantizationType,
         bitlinear_implementation: ImplementationType,
         loss_function: LossFunctionType,
-        lr: float = INITIAL_LR
+        lr: float = INITIAL_LR,
     ):
         super().__init__(
             quantization=quantization,
@@ -249,7 +247,7 @@ class QuantizedSmolModel(QuantizedModel):
         quantization: QuantizationType,
         bitlinear_implementation: ImplementationType,
         loss_function: LossFunctionType,
-        lr: float = INITIAL_LR
+        lr: float = INITIAL_LR,
     ):
         super().__init__(
             quantization=quantization,

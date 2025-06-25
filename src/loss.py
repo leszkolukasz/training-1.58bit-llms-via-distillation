@@ -72,7 +72,7 @@ def KL_loss(
             student_log_probs.reshape((-1, student_log_probs.size(-1))),
             teacher_log_probs.reshape((-1, teacher_log_probs.size(-1))),
             reduction="batchmean",
-            log_target=True, # NOTE: without log it is numericaly unstable
+            log_target=True,  # NOTE: without log it is numericaly unstable
         )
         * temperature**2
     )
@@ -130,7 +130,7 @@ def wasserstein_loss(
 ) -> torch.Tensor:
     teacher_probs = f.softmax(teacher_logits / temperature, dim=-1)
     student_probs = f.softmax(student_logits / temperature, dim=-1)
-    
+
     teacher_probs_sorted = torch.sort(teacher_probs, dim=-1, descending=True)[0]
     student_probs_sorted = torch.sort(student_probs, dim=-1, descending=True)[0]
 
@@ -156,6 +156,7 @@ def cross_entropy_plus_KL(
         student_logits, teacher_logits=teacher_logits, temperature=temperature
     )
 
+
 def cross_entropy_and_mse(
     student_logits: torch.Tensor,
     *,
@@ -167,7 +168,9 @@ def cross_entropy_and_mse(
         f.softmax(student_logits, dim=-1),
         f.softmax(teacher_logits, dim=-1),
     )
-    return cross_entropy(student_logits, teacher_logits=teacher_logits) + lbda * mse_loss
+    return (
+        cross_entropy(student_logits, teacher_logits=teacher_logits) + lbda * mse_loss
+    )
 
 
 if __name__ == "__main__":
