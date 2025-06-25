@@ -153,11 +153,11 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
 
         return {
             "optimizer": optimizer,
-            "lr_scheduler": {
-                "scheduler": scheduler,
-                "interval": "step",
-                "frequency": 1,
-            },
+            # "lr_scheduler": {
+            #     "scheduler": scheduler,
+            #     "interval": "step",
+            #     "frequency": 1,
+            # },
         }
 
     @torch.inference_mode()
