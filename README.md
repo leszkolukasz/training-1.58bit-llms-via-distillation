@@ -19,7 +19,7 @@ Available options are:
 - `<dataset_name>`: `WikiText2DataModule`, `AmberDataModule`
 - `<quantization>`: `1b`, `1_58b`, `1b_no_shift`
 - `<impl>`: `FBI`, `OneBit`, `BitNet`
-- `<loss>`: `CrossEntropy`, `CrossEntropyWithoutKD`, `CrossEntropyAndKL`, `KL`, `CAKL`, `Wasserstein`, `WagedKL`
+- `<loss>`: `CrossEntropy`, `CrossEntropyWithoutKD`, `CrossEntropyAndKL`, `CrossEntropyAndMSE`, `KL`, `CAKL`, `Wasserstein`, `WagedKL`
 
 <br>
 

@@ -11,6 +11,7 @@ LossFunctionType = Literal[
     "CrossEntropy",
     "CrossEntropyWithoutKD",
     "CrossEntropyAndKL",
+    "CrossEntropyAndMSE",
     "KL",
     "CAKL",
     "Wasserstein",
@@ -25,6 +26,8 @@ def get_loss_function(loss_type: LossFunctionType):
         return cross_entropy_without_kd
     elif loss_type == "CrossEntropyAndKL":
         return cross_entropy_plus_KL
+    elif loss_type == "CrossEntropyAndMSE":
+        return cross_entropy_and_mse
     elif loss_type == "KL":
         return KL_loss
     elif loss_type == "WagedKL":
@@ -152,6 +155,19 @@ def cross_entropy_plus_KL(
     return f.cross_entropy(student_logits, teacher_logits) + lbda * KL_loss(
         student_logits, teacher_logits=teacher_logits, temperature=temperature
     )
+
+def cross_entropy_and_mse(
+    student_logits: torch.Tensor,
+    *,
+    teacher_logits: torch.Tensor,
+    lbda: float = 1,
+    **_kwargs,
+) -> torch.Tensor:
+    mse_loss = f.mse_loss(
+        f.softmax(student_logits, dim=-1),
+        f.softmax(teacher_logits, dim=-1),
+    )
+    return cross_entropy(student_logits, teacher_logits=teacher_logits) + lbda * mse_loss
 
 
 if __name__ == "__main__":

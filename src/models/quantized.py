@@ -10,6 +10,7 @@ from src.constants import (EPSILON, MAX_SEQUENCE_LENGTH, QWEN_MODEL_ID,
                            SMOL_MODEL_ID)
 from src.layers import ImplementationType, QuantizationType, quantize_model
 from src.loss import LossFunctionType, get_loss_function
+from src.utils import get_grad_norm
 
 from .mixins import ChatMixin, LogArtifactMixin, Message
 
@@ -142,9 +143,20 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
             logger=True,
         )
 
+        grad_norm = get_grad_norm(self.model)
+
+        self.log(
+            "grad_norm",
+            grad_norm,
+            prog_bar=True,
+            on_step=True,
+            on_epoch=True,
+            logger=True,
+        )
+
     def configure_optimizers(self):
         optimizer = torch.optim.AdamW(
-            self.parameters(), lr=3e-4, betas=(0.9, 0.95), weight_decay=0.1
+            self.parameters(), lr=3e-4, betas=(0.9, 0.98), weight_decay=0.1
         )
 
         T_max = next(
@@ -165,11 +177,11 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
 
         return {
             "optimizer": optimizer,
-            # "lr_scheduler": {
-            #     "scheduler": scheduler,
-            #     "interval": "step",
-            #     "frequency": 1,
-            # },
+            "lr_scheduler": {
+                "scheduler": scheduler,
+                "interval": "step",
+                "frequency": 1,
+            },
         }
 
     @torch.inference_mode()
