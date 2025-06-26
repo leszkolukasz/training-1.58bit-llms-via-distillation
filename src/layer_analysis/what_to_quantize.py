@@ -17,9 +17,9 @@ def LIM(model):
             dataset['train'],
             batch_size=BATCH_SIZE,
             )
+    
     input_activations = {}
     output_activations = {}
-    
     handles = []
     
     def make_hooks(layer_idx):
@@ -29,13 +29,17 @@ def LIM(model):
             output_activations[layer_idx] = out.detach().cpu().numpy()
         return input_hook, output_hook
     
-    for index, layer in enumerate(model.modules()):
-        if isinstance(layer, nn.Linear):
+    for index, (name, module) in enumerate(model.named_modules()): 
+        if name.endswith("mlp"):
             input_hook, output_hook = make_hooks(index)
-            handles.append(layer.register_forward_pre_hook(input_hook))
-            handles.append(layer.register_forward_hook(output_hook))
+            handles.append(module.register_forward_pre_hook(input_hook))
+            handles.append(module.register_forward_hook(output_hook))
+        elif name.endswith("self_attn"):
+            input_hook, output_hook = make_hooks(index)
+            handles.append(module.register_forward_pre_hook(input_hook))
+            handles.append(module.register_forward_hook(output_hook))
     
-    layer_sims = {f"{name}": [] for name, module in model.named_modules() if isinstance(module, nn.Linear)}
+    layer_sims = {f"{name}": [] for name, module in model.named_modules() if name.endswith("mlp") or name.endswith("self_attn")}
     
     device = "cpu"
     model.to(device)
@@ -47,16 +51,15 @@ def LIM(model):
         }
         
         with torch.no_grad():
-            model(**inputs)
+            model(**inputs)   
             
         for layer_idx, (name, module) in enumerate(model.named_modules()):
-            if isinstance(module, nn.Linear):
+            if name.endswith("mlp") or name.endswith("self_attn"):
                 inp = input_activations[layer_idx]
                 out = output_activations[layer_idx]
                 
                 batch_sims = [
                 ]
-                print(inp.shape, out.shape)
                 
                 for k in range(inp.shape[0]):
                     for b in range(inp.shape[1]):
@@ -107,8 +110,8 @@ if __name__ == "__main__":
         print(f"Layer: {layer}, Score: {score:.4f}")
     
     # model = AutoModelForCausalLM.from_pretrained(model_name)
-    # for layer in model.model.layers:
-    #     print(layer)
+    # for name, module in model.named_modules():
+    #     print(name)
     
     
     

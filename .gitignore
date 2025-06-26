@@ -495,3 +495,5 @@ pyrightconfig.json
 
 detokenize_text.py
 arch_check.py
+model_visualization.py
+model_visualization
