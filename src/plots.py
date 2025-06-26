@@ -50,10 +50,9 @@ def plot_metric(
     run_names = [run.info.run_name for run in runs]
     label_map = dict(zip(run_names, pretty_run_names))
     new_labels = [label_map.get(label, label) for label in labels]
-    ax.legend(handles=handles, labels=new_labels)
+    ax.legend(handles=handles, labels=new_labels, title="")
 
     ax.set(xlabel="Step", ylabel=metric_name.replace("_", " ").title())
-    ax.set_title(f"{metric_name.replace('_', ' ').title()} Comparison")
     fig.tight_layout()
 
 
@@ -76,13 +75,14 @@ def get_plot(
 
 def render_ZD_top_p_comparision():
     run_names = [
+                "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_0",
         "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_25",
         "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_50",
         "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_75",
         "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_100",
     ]
 
-    pretty_names = ["ZD 25%", "ZD 50%", "ZD 75%", "ZD 100%"]
+    pretty_names = ["ZD 0% (baseline)", "ZD 25%", "ZD 50%", "ZD 75%", "ZD 100%"]
 
     fig = get_plot(
         run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
