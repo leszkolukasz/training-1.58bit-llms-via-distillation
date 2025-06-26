@@ -75,11 +75,11 @@ def get_plot(
 
 def render_ZD_comparision():
     run_names = [
-        "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_0",
-        "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_25",
-        "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_50",
-        "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_75",
-        "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_100",
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_0_least",
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_25_least",
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_50_least",
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_75_least",
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_100_least",
     ]
 
     pretty_names = [ "ZD 0% (baseline)", "ZD 25%", "ZD 50%", "ZD 75%", "ZD 100%"]
@@ -88,11 +88,30 @@ def render_ZD_comparision():
         run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
     )
     fig.gca().set_ylim(0.0, 20.0)
-    fig.savefig(f"{SAVE_DIR}/ZD.png", dpi=300)
+    fig.savefig(f"{SAVE_DIR}/ZD_least_important.png", dpi=300)
+
+    return fig
+
+def render_LIM_most_comparision():
+    run_names = [
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_0_least",
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy_LIM_25_most",
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy_LIM_50_most",
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy_LIM_75_most",
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_100_least",
+    ]
+
+    pretty_names = [ "LIM 0% (baseline)", "LIM 25%", "LIM 50%", "LIM 75%", "LIM 100%"]
+
+    fig = get_plot(
+        run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
+    )
+    fig.gca().set_ylim(0.0, 20.0)
+    fig.savefig(f"{SAVE_DIR}/LIM_most_important.png", dpi=300)
 
     return fig
 
 
 if __name__ == "__main__":
-    fig = render_ZD_comparision()
+    fig = render_LIM_most_comparision()
     fig.show()

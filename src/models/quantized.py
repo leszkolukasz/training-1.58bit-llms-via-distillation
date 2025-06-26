@@ -250,7 +250,7 @@ class QuantizedSmolModel(QuantizedModel):
         # read from file
         layers_by_LIM = []
 
-        with open("data/smol_layers_sorted_by_ZD.txt", "r", encoding="utf-8") as f:
+        with open("data/smol_layers_sorted_by_LIM.txt", "r", encoding="utf-8") as f:
             for line in f:
                 layers_by_LIM.append(line.strip())
 
@@ -263,8 +263,8 @@ class QuantizedSmolModel(QuantizedModel):
             model_id=SMOL_MODEL_ID,
             lr=lr,
             layers_to_quantize=layers_by_LIM[
-                int((1-PERCENTAGE_OF_LAYERS_TO_QUANTIZE) * len(layers_by_LIM)):
-            ] # choose top p least important layers
+                :int((PERCENTAGE_OF_LAYERS_TO_QUANTIZE) * len(layers_by_LIM))
+            ] # choose top p most important layers
         )
 
 
