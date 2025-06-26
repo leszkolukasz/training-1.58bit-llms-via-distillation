@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from src.constants import (EPSILON, INITIAL_LR, LAYERS_LIM_TOP_P,
+from src.constants import (EPSILON, INITIAL_LR, LAYERS_ZD_TOP_P,
                            MAX_SEQUENCE_LENGTH, QWEN_MODEL_ID, SMOL_MODEL_ID)
 from src.layers import ImplementationType, QuantizationType, quantize_model
 from src.loss import LossFunctionType, get_loss_function
@@ -63,14 +63,16 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
             base_model, quantization, bitlinear_implementation, layers_to_quantize
         )
 
+        print(self.quantized_layers)
+
         self.model.gradient_checkpointing_enable()
 
         # TODO: do wee need this?
-        for full_name, module in self.model.named_modules():
-            name = full_name.split(".")[-1]
-            if name not in layers_to_quantize:
-                for param in module.parameters():
-                    nn.init.normal_(param)
+        # for full_name, module in self.model.named_modules():
+        #     name = full_name.split(".")[-1]
+        #     if name not in layers_to_quantize:
+        #         for param in module.parameters():
+        #             nn.init.normal_(param)
 
         self.criterion = get_loss_function(loss_function)
 
@@ -108,9 +110,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
 
         return loss
 
-    def backward(self, loss):
-        super().backward(loss)
-
+    def on_before_optimizer_step(self, *_args):
         flip_flop_sum = 0.0
         flip_flop_count = 0
 
@@ -252,7 +252,7 @@ class QuantizedSmolModel(QuantizedModel):
         # read from file
         layers_by_LIM = []
 
-        with open("data/smol_layers_sorted_by_LIM.txt", "r", encoding="utf-8") as f:
+        with open("data/smol_layers_sorted_by_ZD.txt", "r", encoding="utf-8") as f:
             for line in f:
                 layers_by_LIM.append(line.strip())
 
@@ -265,7 +265,7 @@ class QuantizedSmolModel(QuantizedModel):
             model_id=SMOL_MODEL_ID,
             lr=lr,
             layers_to_quantize=layers_by_LIM[
-                : int(LAYERS_LIM_TOP_P * len(layers_by_LIM))
+                : int(LAYERS_ZD_TOP_P * len(layers_by_LIM))
             ],
         )
 

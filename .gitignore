@@ -1,5 +1,6 @@
 data/*
-!data/smol_layers_sorted_by_LIM.txt
+!data/smol_layers_sorted_by_ZD.txt
+!data/plots
 benchmarks
 artifacts
 mlruns

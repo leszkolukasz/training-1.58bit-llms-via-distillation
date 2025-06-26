@@ -27,6 +27,10 @@ class LogArtifactMixin:
             or self.trainer.checkpoint_callback.best_model_path
         )
 
+        if not model_path:
+            print("No model path found to log.")
+            return
+
         self.logger.experiment.log_artifact(self.logger.run_id, model_path)
 
         print(
