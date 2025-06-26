@@ -127,11 +127,12 @@ def render_lr(layer: str):
     fig = get_plot(
         run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
     )
+    fig.gca().set_ylim(0.0, 15.0)
     fig.savefig(f"{SAVE_DIR}/{layer}_lr.png", dpi=300)
 
     return fig
 
 
 if __name__ == "__main__":
-    fig = render_lr("BitNet")
+    fig = render_lr("OneBit")
     fig.show()
