@@ -12,7 +12,9 @@ from src.models import QUANTIZED_MODELS
 
 class AmberDataModule(L.LightningDataModule):
     # Chunks is a comma-separated string of integers representing the chunk IDs to load.
-    def __init__(self, model_name: str, batch_size: int = BATCH_SIZE, chunks: str = None):
+    def __init__(
+        self, model_name: str, batch_size: int = BATCH_SIZE, chunks: str = None
+    ):
         super().__init__()
 
         self.batch_size = batch_size
@@ -25,7 +27,7 @@ class AmberDataModule(L.LightningDataModule):
 
     def setup(self, stage: str):
         load_args = {}
-        
+
         if self.chunks is not None:
             load_args["data_files"] = self._find_chunks(self.chunks)
             if len(load_args["data_files"]) == 0:
@@ -33,9 +35,9 @@ class AmberDataModule(L.LightningDataModule):
         else:
             load_args["data_dir"] = AMBER_DATASET_PATH
 
-        self.dataset = load_dataset(
-            "json", streaming=True, **load_args
-        ).with_format("torch")
+        self.dataset = load_dataset("json", streaming=True, **load_args).with_format(
+            "torch"
+        )
 
     def _collate_fn(self, batch: list[dict]) -> dict:
         texts = self.detokenizer.batch_decode(
@@ -62,12 +64,10 @@ class AmberDataModule(L.LightningDataModule):
             batch_size=self.batch_size,
             collate_fn=self._collate_fn,
         )
-    
+
     # Assumes chunks are named following pattern: "(train_)?0*\d+.jsonl"
     def _find_chunks(self, chunks: list[int]) -> list[str]:
-        files = [
-            str(file) for file in Path(AMBER_DATASET_PATH).glob("*.jsonl")
-        ]
+        files = [str(file) for file in Path(AMBER_DATASET_PATH).glob("*.jsonl")]
 
         file_chunk_id = [
             int(file.split("/")[-1].split("_")[-1].split(".")[0]) for file in files
