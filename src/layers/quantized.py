@@ -166,7 +166,9 @@ def quantize_model(
         name = full_name.split(".")[-1]
 
         if isinstance(module, nn.Linear) and (
-            name in layers_to_quantize or full_name in layers_to_quantize or any(full_name.startswith(layer) for layer in layers_to_quantize)
+            name in layers_to_quantize
+            or full_name in layers_to_quantize
+            or any(full_name.startswith(layer) for layer in layers_to_quantize)
         ):
             in_features = module.in_features
             out_features = module.out_features

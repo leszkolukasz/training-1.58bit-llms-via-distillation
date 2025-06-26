@@ -9,7 +9,7 @@ from lightning.pytorch.loggers import MLFlowLogger
 
 from src.chat import chat_loop
 from src.constants import (ACCUMULATE_GRADIENT_FOR_N_SAMPLES, BATCH_SIZE,
-                           SAVE_EVERY_N_STEPS, RUN_NAME_SUFFIX)
+                           RUN_NAME_SUFFIX, SAVE_EVERY_N_STEPS)
 # Required for LightningCLI to detect all models and datamodules
 from src.datamodules import *
 from src.mlflow import get_or_create_run
