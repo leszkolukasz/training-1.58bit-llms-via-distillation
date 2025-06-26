@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from src.constants import (EPSILON, INITIAL_LR, LAYERS_ZD_TOP_P,
+from src.constants import (EPSILON, INITIAL_LR, PERCENTAGE_OF_LAYERS_TO_QUANTIZE,
                            MAX_SEQUENCE_LENGTH, QWEN_MODEL_ID, SMOL_MODEL_ID)
 from src.layers import ImplementationType, QuantizationType, quantize_model
 from src.loss import LossFunctionType, get_loss_function
@@ -263,8 +263,8 @@ class QuantizedSmolModel(QuantizedModel):
             model_id=SMOL_MODEL_ID,
             lr=lr,
             layers_to_quantize=layers_by_LIM[
-                : int(LAYERS_ZD_TOP_P * len(layers_by_LIM))
-            ],
+                int((1-PERCENTAGE_OF_LAYERS_TO_QUANTIZE) * len(layers_by_LIM)):
+            ] # choose top p least important layers
         )
 
 

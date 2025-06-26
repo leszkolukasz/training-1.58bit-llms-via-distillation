@@ -73,26 +73,26 @@ def get_plot(
     return fig
 
 
-def render_ZD_top_p_comparision():
+def render_ZD_comparision():
     run_names = [
-                "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_0",
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_0",
         "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_25",
         "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_50",
         "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_75",
         "quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_100",
     ]
 
-    pretty_names = ["ZD 0% (baseline)", "ZD 25%", "ZD 50%", "ZD 75%", "ZD 100%"]
+    pretty_names = [ "ZD 0% (baseline)", "ZD 25%", "ZD 50%", "ZD 75%", "ZD 100%"]
 
     fig = get_plot(
         run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
     )
     fig.gca().set_ylim(0.0, 20.0)
-    fig.savefig(f"{SAVE_DIR}/ZD_top_p_comparision.png", dpi=300)
+    fig.savefig(f"{SAVE_DIR}/ZD.png", dpi=300)
 
     return fig
 
 
 if __name__ == "__main__":
-    fig = render_ZD_top_p_comparision()
+    fig = render_ZD_comparision()
     fig.show()
