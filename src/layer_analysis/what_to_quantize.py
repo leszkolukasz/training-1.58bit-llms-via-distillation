@@ -26,22 +26,24 @@ def LIM(model):
     handles = []
 
     def make_hooks(layer_idx):
-        def input_hook(_module, inp):
-            input_activations[layer_idx] = inp[0].detach().cpu().numpy()
+        def input_hook(_module, pos_inp, kwargs_inp):
+            inp = kwargs_inp["hidden_states"] if len(pos_inp) == 0 else pos_inp[0]
+            input_activations[layer_idx] = inp.detach().cpu().numpy()
 
-        def output_hook(_module, inp, out):
+        def output_hook(_module, _inp, out):
+            out = out[0] if isinstance(out, tuple) else out
             output_activations[layer_idx] = out.detach().cpu().numpy()
 
         return input_hook, output_hook
 
-    for index, (name, module) in enumerate(model.named_modules()): 
+    for index, (name, module) in enumerate(model.named_modules()):
         if name.endswith("mlp"):
             input_hook, output_hook = make_hooks(index)
-            handles.append(module.register_forward_pre_hook(input_hook))
+            handles.append(module.register_forward_pre_hook(input_hook, with_kwargs=True))
             handles.append(module.register_forward_hook(output_hook))
         elif name.endswith("self_attn"):
             input_hook, output_hook = make_hooks(index)
-            handles.append(module.register_forward_pre_hook(input_hook))
+            handles.append(module.register_forward_pre_hook(input_hook, with_kwargs=True))
             handles.append(module.register_forward_hook(output_hook))
     
     layer_sims = {f"{name}": [] for name, module in model.named_modules() if name.endswith("mlp") or name.endswith("self_attn")}
@@ -61,11 +63,14 @@ def LIM(model):
             ),
         }
 
+        input_activations.clear()
+        output_activations.clear()
+
         with torch.no_grad():
-            model(**inputs)   
+            model(**inputs)
             
         for layer_idx, (name, module) in enumerate(model.named_modules()):
-            if name.endswith("mlp") or name.endswith("self_attn"):
+            if name.endswith("mlp") or name.endswith("self_attn") and layer_idx in input_activations:
                 inp = input_activations[layer_idx]
                 out = output_activations[layer_idx]
                 
@@ -116,7 +121,7 @@ def analyze_layers_to_quantize(model_name: str, score_function):
 if __name__ == "__main__":
     model_name = SMOL_MODEL_ID
 
-    scores = analyze_layers_to_quantize(model_name, ZD)
+    scores = analyze_layers_to_quantize(model_name, LIM)
 
     for layer, score in scores:
         print(f"Layer: {layer}, Score: {score:.4f}")
