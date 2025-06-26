@@ -1,7 +1,6 @@
 import argparse
 import datetime
 
-import mlflow
 import torch
 from jsonargparse import lazy_instance
 from lightning.pytorch.callbacks import ModelCheckpoint
@@ -10,37 +9,16 @@ from lightning.pytorch.loggers import MLFlowLogger
 
 from src.chat import chat_loop
 from src.constants import (ACCUMULATE_GRADIENT_FOR_N_SAMPLES, BATCH_SIZE,
-                           SAVE_EVERY_N_STEPS)
-from src.datamodules import *
+                           SAVE_EVERY_N_STEPS, RUN_NAME_SUFFIX)
 # Required for LightningCLI to detect all models and datamodules
+from src.datamodules import *
+from src.mlflow import get_or_create_run
 from src.models import *
 
 torch.set_float32_matmul_precision("high")
 
 
-suffix = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-experiment_name = "nlp_project"
-tracking_uri = "file:mlruns"
-
-mlflow.set_tracking_uri(tracking_uri)
-mlflow.set_experiment(experiment_name)
-
-client = mlflow.tracking.MlflowClient()
-
-
-def get_or_create_run(run_name: str):
-    runs = client.search_runs(
-        experiment_ids=[client.get_experiment_by_name(experiment_name).experiment_id],
-        filter_string=f"tags.mlflow.runName = '{run_name}'",
-    )
-
-    for r in runs:
-        return r
-
-    return client.create_run(
-        experiment_id=client.get_experiment_by_name(experiment_name).experiment_id,
-        tags={"mlflow.runName": run_name},
-    )
+time_suffix = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
 
 class MyLightningCLI(LightningCLI):
@@ -88,7 +66,7 @@ def main():
 
         return
 
-    run_name = f"test_run_{suffix}"
+    run_name = f"test_run_{time_suffix}"
 
     if args.command == "fit" and model_name in QUANTIZED_MODELS:
         if (
@@ -107,6 +85,7 @@ def main():
         if initial_lr is not None:
             run_name = run_name + f"_lr_{str(initial_lr)}"
 
+    run_name = run_name + RUN_NAME_SUFFIX
     run = get_or_create_run(run_name)
 
     MyLightningCLI(

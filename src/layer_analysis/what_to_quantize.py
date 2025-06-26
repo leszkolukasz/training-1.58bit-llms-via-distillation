@@ -25,34 +25,24 @@ def LIM(model):
 
     handles = []
     
-    def wrap_forward(module, layer_idx):
-        orig_forward = module.forward
-        def new_forward(*args, **kwargs):
-            hidden = kwargs.get("hidden_states", args[0] if len(args)>0 else None)
-            input_activations[layer_idx] = hidden.detach().cpu().numpy()
-            out = orig_forward(*args, **kwargs)
-            return out
-        module.forward = new_forward
-
-    for idx, (name, module) in enumerate(model.named_modules()):
-        if name.endswith("self_attn") or name.endswith("mlp"):
-            wrap_forward(module, idx)
-
     def make_hooks(layer_idx):
-        def input_hook(_module, inp):
-            input_activations[layer_idx] = inp[0].detach().cpu().numpy()
-        def output_hook(_module, inp, out):
+        def input_hook(_module, pos_inp, kwargs_inp):
+            inp = kwargs_inp["hidden_states"] if len(pos_inp) == 0 else pos_inp[0]
+            input_activations[layer_idx] = inp.detach().cpu().numpy()
+
+        def output_hook(_module, _inp, out):
+            out = out[0] if isinstance(out, tuple) else out
             output_activations[layer_idx] = out.detach().cpu().numpy()
         return input_hook, output_hook
 
-    for index, (name, module) in enumerate(model.named_modules()): 
+    for index, (name, module) in enumerate(model.named_modules()):
         if name.endswith("mlp"):
             input_hook, output_hook = make_hooks(index)
-            handles.append(module.register_forward_pre_hook(input_hook))
+            handles.append(module.register_forward_pre_hook(input_hook, with_kwargs=True))
             handles.append(module.register_forward_hook(output_hook))
         elif name.endswith("self_attn"):
             input_hook, output_hook = make_hooks(index)
-            handles.append(module.register_forward_pre_hook(input_hook))
+            handles.append(module.register_forward_pre_hook(input_hook, with_kwargs=True))
             handles.append(module.register_forward_hook(output_hook))
     
     layer_sims = {f"{name}": [] for name, module in model.named_modules() if name.endswith("mlp") or name.endswith("self_attn")}
@@ -72,11 +62,14 @@ def LIM(model):
             ),
         }
 
+        input_activations.clear()
+        output_activations.clear()
+
         with torch.no_grad():
-            model(**inputs)   
+            model(**inputs)
             
         for layer_idx, (name, module) in enumerate(model.named_modules()):
-            if name.endswith("mlp") or name.endswith("self_attn"):
+            if name.endswith("mlp") or name.endswith("self_attn") and layer_idx in input_activations:
                 inp = input_activations[layer_idx]
                 out = output_activations[layer_idx]
                 
@@ -124,19 +117,20 @@ def analyze_layers_to_quantize(model_name: str, score_function):
 
 if __name__ == "__main__":
     model_name = SMOL_MODEL_ID
-    SCORE = LIM
+    SCORE = ZD
+    
+    scores = analyze_layers_to_quantize(model_name, SCORE)
 
-    # scores = analyze_layers_to_quantize(model_name, SCORE)
-
-    # for layer, score in scores:
-    #     print(f"Layer: {layer}, Score: {score:.4f}")    
+    for layer, score in scores:
+        print(f"Layer: {layer}, Score: {score:.4f}")    
+        
     # with open(f"layers_{SCORE}.txt", "w", encoding="utf-8") as f:
     #     for layer, _ in scores:
-    #     f.write(layer + "\n")
+    #         f.write(layer + "\n")
         
-    model = AutoModelForCausalLM.from_pretrained(model_name)
-    for name, module in model.named_modules():
-        print(name)
+    # model = AutoModelForCausalLM.from_pretrained(model_name)
+    # for name, module in model.named_modules():
+    #     print(name)
     
 
     
