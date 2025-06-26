@@ -24,14 +24,25 @@ def LIM(model):
     output_activations = {}
 
     handles = []
+    
+    def wrap_forward(module, layer_idx):
+        orig_forward = module.forward
+        def new_forward(*args, **kwargs):
+            hidden = kwargs.get("hidden_states", args[0] if len(args)>0 else None)
+            input_activations[layer_idx] = hidden.detach().cpu().numpy()
+            out = orig_forward(*args, **kwargs)
+            return out
+        module.forward = new_forward
+
+    for idx, (name, module) in enumerate(model.named_modules()):
+        if name.endswith("self_attn") or name.endswith("mlp"):
+            wrap_forward(module, idx)
 
     def make_hooks(layer_idx):
         def input_hook(_module, inp):
             input_activations[layer_idx] = inp[0].detach().cpu().numpy()
-
         def output_hook(_module, inp, out):
             output_activations[layer_idx] = out.detach().cpu().numpy()
-
         return input_hook, output_hook
 
     for index, (name, module) in enumerate(model.named_modules()): 
@@ -69,9 +80,7 @@ def LIM(model):
                 inp = input_activations[layer_idx]
                 out = output_activations[layer_idx]
                 
-                batch_sims = [
-                ]
-                
+                batch_sims = []
                 for k in range(inp.shape[0]):
                     for b in range(inp.shape[1]):
                         sim = torch.cosine_similarity(
@@ -115,13 +124,19 @@ def analyze_layers_to_quantize(model_name: str, score_function):
 
 if __name__ == "__main__":
     model_name = SMOL_MODEL_ID
+    SCORE = LIM
 
-    scores = analyze_layers_to_quantize(model_name, ZD)
+    # scores = analyze_layers_to_quantize(model_name, SCORE)
 
-    for layer, score in scores:
-        print(f"Layer: {layer}, Score: {score:.4f}")
+    # for layer, score in scores:
+    #     print(f"Layer: {layer}, Score: {score:.4f}")    
+    # with open(f"layers_{SCORE}.txt", "w", encoding="utf-8") as f:
+    #     for layer, _ in scores:
+    #     f.write(layer + "\n")
         
-    # model = AutoModelForCausalLM.from_pretrained(model_name)
-    # for name, module in model.named_modules():
-    #     print(name)
+    model = AutoModelForCausalLM.from_pretrained(model_name)
+    for name, module in model.named_modules():
+        print(name)
+    
+
     
