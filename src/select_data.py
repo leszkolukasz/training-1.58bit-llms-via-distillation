@@ -27,6 +27,6 @@ def select_k_random_samples(input_file: str, output_file: str, k: int, seed: int
 if __name__ == "__main__":
     
     INPUT_FILE = "./data/amber_small/train_000.jsonl"
-    OUTPUT_FILE = "./data/amber_small_100000/train_000_100000.jsonl."
+    OUTPUT_FILE = "./data/amber_small_100000/train_000_100000.jsonl"
     
     select_k_random_samples(INPUT_FILE, OUTPUT_FILE, 1e5)
