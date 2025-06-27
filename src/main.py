@@ -9,7 +9,7 @@ from lightning.pytorch.loggers import MLFlowLogger
 
 from src.chat import chat_loop
 from src.constants import (ACCUMULATE_GRADIENT_FOR_N_SAMPLES, BATCH_SIZE,
-                           RUN_NAME_SUFFIX, SAVE_EVERY_N_STEPS)
+                           RUN_NAME_SUFFIX, SAVE_EVERY_N_STEPS, TRACKING_URI)
 # Required for LightningCLI to detect all models and datamodules
 from src.datamodules import *
 from src.mlflow import get_or_create_run
@@ -109,7 +109,7 @@ def main():
             "logger": lazy_instance(
                 MLFlowLogger,
                 experiment_name="nlp_project",
-                tracking_uri="file:mlruns",
+                tracking_uri=TRACKING_URI,
                 run_name=run_name,
                 run_id=run.info.run_id,
                 log_model=False,
