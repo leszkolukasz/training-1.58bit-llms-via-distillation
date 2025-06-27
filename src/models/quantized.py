@@ -169,7 +169,7 @@ class QuantizedModel(ABC, LogArtifactMixin, L.LightningModule, ChatMixin):
             for t in [
                 self.trainer.estimated_stepping_batches,
                 self.trainer.max_steps,
-                10000,
+                20000,
             ]
             if t is not None and t > 0
         )
