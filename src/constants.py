@@ -12,7 +12,7 @@ SAVE_EVERY_N_STEPS = config(
     "SAVE_EVERY_N_STEPS", default=5000, cast=int
 )  # step is finished when optimizer is called
 ACCUMULATE_GRADIENT_FOR_N_SAMPLES = 16
-RUN_NAME_SUFFIX = "small_1e5_FINAL"
+RUN_NAME_SUFFIX = ""
 EPSILON = 1e-6
 INITIAL_LR = 1e-3
 PERCENTAGE_OF_LAYERS_TO_QUANTIZE = 0.25
