@@ -8,9 +8,14 @@ SMOL_MODEL_ID = "HuggingFaceTB/SmolLM2-135M-Instruct"
 AMBER_DATASET_PATH = config("AMBER_DATASET_PATH", default="./data/amber_small_100000")
 BATCH_SIZE = config("BATCH_SIZE", default=4, cast=int)
 MAX_SEQUENCE_LENGTH = config("MAX_SEQUENCE_LENGTH", default=1024, cast=int)
-SAVE_EVERY_N_STEPS = config("SAVE_EVERY_N_STEPS", default=5000, cast=int) # step is finished when optimizer is called
+SAVE_EVERY_N_STEPS = config(
+    "SAVE_EVERY_N_STEPS", default=5000, cast=int
+)  # step is finished when optimizer is called
 ACCUMULATE_GRADIENT_FOR_N_SAMPLES = 16
 RUN_NAME_SUFFIX = "small_1e5_FINAL"
 EPSILON = 1e-6
 INITIAL_LR = 1e-3
 PERCENTAGE_OF_LAYERS_TO_QUANTIZE = 0.25
+
+EXPERIMENT_NAME = "nlp_project"
+TRACKING_URI = config("TRACKING_URI", default="file:mlruns")

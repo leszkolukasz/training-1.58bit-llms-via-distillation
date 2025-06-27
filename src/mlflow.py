@@ -1,7 +1,5 @@
 import mlflow
-
-EXPERIMENT_NAME = "nlp_project"
-TRACKING_URI = "file:mlruns"
+from src.constants import TRACKING_URI, EXPERIMENT_NAME
 
 mlflow.set_tracking_uri(TRACKING_URI)
 mlflow.set_experiment(EXPERIMENT_NAME)

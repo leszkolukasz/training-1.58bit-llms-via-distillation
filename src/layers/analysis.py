@@ -16,15 +16,15 @@ def LIM(model):
     ).with_format("torch")
 
     dataloader = DataLoader(
-            dataset['train'],
-            batch_size=BATCH_SIZE,
-            )
-    
+        dataset["train"],
+        batch_size=BATCH_SIZE,
+    )
+
     input_activations = {}
     output_activations = {}
 
     handles = []
-    
+
     def make_hooks(layer_idx):
         def input_hook(_module, pos_inp, kwargs_inp):
             inp = kwargs_inp["hidden_states"] if len(pos_inp) == 0 else pos_inp[0]
@@ -33,20 +33,29 @@ def LIM(model):
         def output_hook(_module, _inp, out):
             out = out[0] if isinstance(out, tuple) else out
             output_activations[layer_idx] = out.detach().cpu().numpy()
+
         return input_hook, output_hook
 
     for index, (name, module) in enumerate(model.named_modules()):
         if name.endswith("mlp"):
             input_hook, output_hook = make_hooks(index)
-            handles.append(module.register_forward_pre_hook(input_hook, with_kwargs=True))
+            handles.append(
+                module.register_forward_pre_hook(input_hook, with_kwargs=True)
+            )
             handles.append(module.register_forward_hook(output_hook))
         elif name.endswith("self_attn"):
             input_hook, output_hook = make_hooks(index)
-            handles.append(module.register_forward_pre_hook(input_hook, with_kwargs=True))
+            handles.append(
+                module.register_forward_pre_hook(input_hook, with_kwargs=True)
+            )
             handles.append(module.register_forward_hook(output_hook))
-    
-    layer_sims = {f"{name}": [] for name, module in model.named_modules() if name.endswith("mlp") or name.endswith("self_attn")}
-    
+
+    layer_sims = {
+        f"{name}": []
+        for name, module in model.named_modules()
+        if name.endswith("mlp") or name.endswith("self_attn")
+    }
+
     device = "cpu"
     model.to(device)
 
@@ -67,12 +76,16 @@ def LIM(model):
 
         with torch.no_grad():
             model(**inputs)
-            
+
         for layer_idx, (name, module) in enumerate(model.named_modules()):
-            if name.endswith("mlp") or name.endswith("self_attn") and layer_idx in input_activations:
+            if (
+                name.endswith("mlp")
+                or name.endswith("self_attn")
+                and layer_idx in input_activations
+            ):
                 inp = input_activations[layer_idx]
                 out = output_activations[layer_idx]
-                
+
                 batch_sims = []
                 for k in range(inp.shape[0]):
                     for b in range(inp.shape[1]):
@@ -117,19 +130,17 @@ def analyze_layers_to_quantize(model_name: str, score_function):
 
 if __name__ == "__main__":
     model_name = SMOL_MODEL_ID
-    SCORE = LIM
-    PATH = "./src/layer_analysis/results"
-    
+    SCORE = ZD
+
     scores = analyze_layers_to_quantize(model_name, SCORE)
 
     for layer, score in scores:
-        print(f"Layer: {layer}, Score: {score:.4f}")    
-        
-    score_name = "ZD" if SCORE == ZD else "LIM"
-    
-        
-    with open(f"{PATH}/layers_{score_name}.txt", "w", encoding="utf-8") as f:
-        for layer, _ in scores:
-            f.write(layer + "\n")
+        print(f"Layer: {layer}, Score: {score:.4f}")
 
-    
+    # with open(f"layers_{SCORE}.txt", "w", encoding="utf-8") as f:
+    #     for layer, _ in scores:
+    #         f.write(layer + "\n")
+
+    # model = AutoModelForCausalLM.from_pretrained(model_name)
+    # for name, module in model.named_modules():
+    #     print(name)

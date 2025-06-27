@@ -6,8 +6,9 @@ import torch
 import torch.nn as nn
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from src.constants import (EPSILON, INITIAL_LR, PERCENTAGE_OF_LAYERS_TO_QUANTIZE,
-                           MAX_SEQUENCE_LENGTH, QWEN_MODEL_ID, SMOL_MODEL_ID)
+from src.constants import (EPSILON, INITIAL_LR, MAX_SEQUENCE_LENGTH,
+                           PERCENTAGE_OF_LAYERS_TO_QUANTIZE, QWEN_MODEL_ID,
+                           SMOL_MODEL_ID)
 from src.layers import ImplementationType, QuantizationType, quantize_model
 from src.loss import LossFunctionType, get_loss_function
 from src.utils import get_grad_norm
@@ -263,8 +264,8 @@ class QuantizedSmolModel(QuantizedModel):
             model_id=SMOL_MODEL_ID,
             lr=lr,
             layers_to_quantize=layers_by_LIM[
-                :int((PERCENTAGE_OF_LAYERS_TO_QUANTIZE) * len(layers_by_LIM))
-            ] # choose top p most important layers
+                : int((PERCENTAGE_OF_LAYERS_TO_QUANTIZE) * len(layers_by_LIM))
+            ],  # choose top p most important layers
         )
 
 
