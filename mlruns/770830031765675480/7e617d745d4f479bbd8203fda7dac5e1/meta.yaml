@@ -1,0 +1,16 @@
+artifact_uri: file:///media/whistleroosh/Universal/projects/training-1.58bit-llms-via-distillation/mlruns/770830031765675480/7e617d745d4f479bbd8203fda7dac5e1/artifacts
+deleted_time: 1750964417639
+end_time: 1750964069969
+entry_point_name: ''
+experiment_id: '770830031765675480'
+lifecycle_stage: deleted
+run_id: 7e617d745d4f479bbd8203fda7dac5e1
+run_name: quant_1_58b_impl_OneBit_loss_CrossEntropy
+run_uuid: 7e617d745d4f479bbd8203fda7dac5e1
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1750964016362
+status: 4
+tags: []
+user_id: unknown

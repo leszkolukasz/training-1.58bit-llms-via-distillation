@@ -1,0 +1,15 @@
+artifact_uri: file:///home/jupyter/data/mlruns/770830031765675480/b56a5424c3e04f62ae1a2a4602018496/artifacts
+end_time: 1751076926041
+entry_point_name: ''
+experiment_id: '770830031765675480'
+lifecycle_stage: active
+run_id: b56a5424c3e04f62ae1a2a4602018496
+run_name: quant_1_58b_impl_FBI_loss_CrossEntropy
+run_uuid: b56a5424c3e04f62ae1a2a4602018496
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751024053794
+status: 3
+tags: []
+user_id: unknown
