@@ -66,7 +66,9 @@ if __name__ == "__main__":
     model.eval()
 
     print("Saving model...")
-    model.save_pretrained(HF_CONVERTED_OUT_DIR)
+    # Safetensors does not work: lm_head.weight is not saved
+    # See: https://github.com/huggingface/transformers/issues/38870
+    model.save_pretrained(HF_CONVERTED_OUT_DIR, safe_serialization=False)
     tokenizer = AutoTokenizer.from_pretrained(SMOL_MODEL_ID)
     tokenizer.save_pretrained(HF_CONVERTED_OUT_DIR)
     print("Model saved")

@@ -11,5 +11,5 @@ model = HFQuantizedSmolModel.from_pretrained(HF_CONVERTED_OUT_DIR, trust_remote_
 tokenizer = AutoTokenizer.from_pretrained(HF_CONVERTED_OUT_DIR)
 
 # and push
-model.push_to_hub(f"{ORG_NAME}/{HF_MODEL_NAME}")
+model.push_to_hub(f"{ORG_NAME}/{HF_MODEL_NAME}", safe_serialization=False)
 tokenizer.push_to_hub(f"{ORG_NAME}/{HF_MODEL_NAME}")

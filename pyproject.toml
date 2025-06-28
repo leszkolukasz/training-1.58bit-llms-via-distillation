@@ -16,6 +16,7 @@ dependencies = [
     "polars>=1.31.0",
     "pyqt6>=6.9.1",
     "python-decouple>=3.8",
+    "safetensors>=0.5.3",
     "seaborn>=0.13.2",
     "torch>=2.7.1",
     "transformers>=4.52.4",
