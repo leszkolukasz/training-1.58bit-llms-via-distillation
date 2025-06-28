@@ -19,3 +19,16 @@ PERCENTAGE_OF_LAYERS_TO_QUANTIZE = 0.25
 
 EXPERIMENT_NAME = "nlp_project"
 TRACKING_URI = config("TRACKING_URI", default="file:mlruns")
+
+ORG_NAME = "nlp-project-uw"
+HF_USERNAME = config("HF_USERNAME", default=None)
+HF_TOKEN = config("HF_TOKEN", default=None)
+
+# Evaluation
+HF_MODEL_CKPT = "./mlruns/770830031765675480/6963e38a61c64c9781a3cbed813344b4/checkpoints/epoch=2-step=19999.ckpt"
+HF_CONVERTED_OUT_DIR = "./data/hf_converted"
+HF_QUANTIZATION = "1_58b"
+HF_BITLINEAR_IMPL = "OneBit"
+HF_LOSS_FUNCTION = "CrossEntropy"
+HF_MODEL_NAME = f"quant_{HF_QUANTIZATION}_impl_{HF_BITLINEAR_IMPL}_loss_{HF_LOSS_FUNCTION}"
+BENCHMARK_OUTPUT_FILE = f"./data/benchmarks/{HF_MODEL_NAME}.pkl"

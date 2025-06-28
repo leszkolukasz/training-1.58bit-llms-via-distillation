@@ -130,17 +130,16 @@ def analyze_layers_to_quantize(model_name: str, score_function):
 
 if __name__ == "__main__":
     model_name = SMOL_MODEL_ID
-    SCORE = ZD
+    SCORE = LIM
+    PATH = "./src/layer_analysis/results"
 
     scores = analyze_layers_to_quantize(model_name, SCORE)
 
     for layer, score in scores:
         print(f"Layer: {layer}, Score: {score:.4f}")
 
-    # with open(f"layers_{SCORE}.txt", "w", encoding="utf-8") as f:
-    #     for layer, _ in scores:
-    #         f.write(layer + "\n")
+    score_name = "ZD" if SCORE == ZD else "LIM"
 
-    # model = AutoModelForCausalLM.from_pretrained(model_name)
-    # for name, module in model.named_modules():
-    #     print(name)
+    with open(f"{PATH}/layers_{score_name}.txt", "w", encoding="utf-8") as f:
+        for layer, _ in scores:
+            f.write(layer + "\n")

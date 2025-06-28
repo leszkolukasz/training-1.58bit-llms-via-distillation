@@ -9,6 +9,7 @@ dependencies = [
     "huggingface-hub[cli]>=0.32.4",
     "isort>=6.0.1",
     "lightning[extra]>=2.5.1.post0",
+    "lm-eval>=0.4.9",
     "matplotlib>=3.10.3",
     "mlflow>=2.22.1",
     "numpy>=2.2.6",

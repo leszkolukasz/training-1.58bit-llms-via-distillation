@@ -5,10 +5,7 @@ import pickle as pkl
 import pandas as pd
 import plotly.express as px
 
-READ_PATH = (
-    "./benchmarks/results/d40998e3504b46c99bece2b8f3dbf174/checkpoints_results.pkl"
-)
-
+from src.constants import BENCHMARK_OUTPUT_FILE
 
 def read_and_display(read_path: str):
     if not os.path.exists(read_path):
@@ -42,4 +39,4 @@ def read_and_display(read_path: str):
 
 
 if __name__ == "__main__":
-    read_and_display(READ_PATH)
+    read_and_display(BENCHMARK_OUTPUT_FILE)

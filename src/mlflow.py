@@ -1,5 +1,5 @@
 import mlflow
-from src.constants import TRACKING_URI, EXPERIMENT_NAME
+from src.constants import EXPERIMENT_NAME, TRACKING_URI
 
 mlflow.set_tracking_uri(TRACKING_URI)
 mlflow.set_experiment(EXPERIMENT_NAME)
