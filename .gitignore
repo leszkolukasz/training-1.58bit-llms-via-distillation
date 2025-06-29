@@ -2,14 +2,14 @@ data/*
 !data/smol_layers_sorted_by_ZD.txt
 !data/smol_layers_sorted_by_LIM.txt
 !data/plots
-benchmarks
+!data/benchmark.md
 artifacts
+benchmarks
 mlruns/**/*.ckpt
 _build
 notes.txt
 .env*
 .env.local
-src/layer_analysis/results
 
 # Created by https://www.toptal.com/developers/gitignore/api/latex,python
 # Edit at https://www.toptal.com/developers/gitignore?templates=latex,python
