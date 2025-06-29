@@ -50,6 +50,11 @@ class HFQuantizedSmolModel(PreTrainedModel):
         return self.model(
             input_ids=input_ids, attention_mask=attention_mask, **kwargs
         )
+    
+    def generate(self, input_ids, attention_mask=None, **kwargs):
+        return self.model.generate(
+            input_ids=input_ids, attention_mask=attention_mask, **kwargs
+        )
 
 if __name__ == "__main__":
     shutil.rmtree(HF_CONVERTED_OUT_DIR, ignore_errors=True)

@@ -43,16 +43,19 @@ def plot_metric(
     combined_df = pl.concat(dfs).to_pandas()
 
     ax = fig.gca()
-    sns.lineplot(data=combined_df, x="step", y=metric_name, hue="run_name", ax=ax)
+    sns.lineplot(data=combined_df, x="step", y=metric_name, hue="run_name", ax=ax, linewidth=2)
 
     # Replace legend labels with pretty names
     handles, labels = ax.get_legend_handles_labels()
     run_names = [run.info.run_name for run in runs]
     label_map = dict(zip(run_names, pretty_run_names))
     new_labels = [label_map.get(label, label) for label in labels]
-    ax.legend(handles=handles, labels=new_labels, title="")
 
-    ax.set(xlabel="Step", ylabel=metric_name.replace("_", " ").title())
+    ax.legend(handles=handles, labels=new_labels, title="", fontsize=16)
+    ax.set_xlabel("Step", fontsize=14)
+    ax.set_ylabel(metric_name.replace("_", " ").title(), fontsize=14)
+    ax.tick_params(axis="both", which="major", labelsize=14)
+
     fig.tight_layout()
 
 
@@ -87,7 +90,7 @@ def render_ZD_comparision():
     fig = get_plot(
         run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
     )
-    fig.gca().set_ylim(0.0, 20.0)
+    fig.gca().set_ylim(0.0, 15.0)
     fig.savefig(f"{SAVE_DIR}/ZD_least_important.png", dpi=300)
 
     return fig
@@ -107,7 +110,7 @@ def render_LIM_most_comparision():
     fig = get_plot(
         run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
     )
-    fig.gca().set_ylim(0.0, 20.0)
+    fig.gca().set_ylim(0.0, 15.0)
     fig.savefig(f"{SAVE_DIR}/LIM_most_important.png", dpi=300)
 
     return fig
@@ -134,5 +137,5 @@ def render_lr(layer: str):
 
 
 if __name__ == "__main__":
-    fig = render_lr("OneBit")
+    fig = render_ZD_comparision()
     fig.show()
