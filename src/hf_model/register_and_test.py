@@ -9,7 +9,7 @@ from transformers import (CONFIG_MAPPING, AutoConfig, AutoModel,
                           AutoModelForCausalLM)
 
 from src.hf_model.hf_class import BitConfig42, HFQuantizedSmolModel
-from src.constants import ORG_NAME, HF_MODEL_NAME, BENCHMARK_OUTPUT_FILE
+from src.constants import ORG_NAME, HF_MODEL_NAME, BENCHMARK_OUTPUT_FILE, HARNESS_TASK
 
 # Model registration and evaluation
 
@@ -30,7 +30,7 @@ if __name__ == "__main__":
     results = evaluator.simple_evaluate(
         model="hf",
         model_args=f"pretrained={ORG_NAME}/{HF_MODEL_NAME}",
-        tasks=["hellaswag", "mathqa"],
+        tasks=[HARNESS_TASK],
         device="cuda:0",
         batch_size=4,
         task_manager=task_manager,
