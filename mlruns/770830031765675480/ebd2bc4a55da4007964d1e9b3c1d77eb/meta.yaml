@@ -1,0 +1,15 @@
+artifact_uri: file:///home/jupyter/data/mlruns/235268188100096412/ebd2bc4a55da4007964d1e9b3c1d77eb/artifacts
+end_time: 1751282737700
+entry_point_name: ''
+experiment_id: '770830031765675480'
+lifecycle_stage: active
+run_id: ebd2bc4a55da4007964d1e9b3c1d77eb
+run_name: quant_1_58b_impl_OneBit_loss_CAKL
+run_uuid: ebd2bc4a55da4007964d1e9b3c1d77eb
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751211907893
+status: 3
+tags: []
+user_id: unknown

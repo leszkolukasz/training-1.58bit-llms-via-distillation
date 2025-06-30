@@ -60,7 +60,7 @@ def plot_metric(
             alpha=alpha,
             errorbar=None,
         )
-        alpha -= 0.5
+        # alpha -= 0.5
 
     # Replace legend labels with pretty names
     handles, labels = ax.get_legend_handles_labels()
@@ -91,6 +91,52 @@ def get_plot(
     fig = plt.figure(figsize=(10, 6))
     plot_metric(fig, runs, metric_name, pretty_run_names, rolling_mean=rolling_mean)
 
+    return fig
+
+def render_loss_variants_grid():
+    run_names = {
+        "CrossEntropy": "quant_1_58b_impl_OneBit_loss_CrossEntropy",
+        "KL": "quant_1_58b_impl_OneBit_loss_KL",
+        "CAKL": "quant_1_58b_impl_OneBit_loss_CAKL",
+        "Wasserstein": "quant_1_58b_impl_OneBit_loss_Wasserstein",
+    }
+
+    palette = {
+        "CrossEntropy": "#1f77b4",   
+        "KL": "#b96113",             
+        "CAKL": "#248024",           
+        "Wasserstein": "#941e1e",   
+    }
+
+    fig, axs = plt.subplots(2, 2, figsize=(14, 10))
+    axs = axs.flatten()
+
+    for idx, (loss_name, run_name) in enumerate(run_names.items()):
+        run = get_run_by_name(run_name)
+        df = get_metric_df(run, "train_loss_step", rolling_mean=5).to_pandas()
+
+        ax = axs[idx]
+        sns.lineplot(
+            data=df,
+            x="step",
+            y="train_loss_step",
+            ax=ax,
+            label=loss_name,
+            linewidth=2,
+            errorbar=None,
+            color=palette[loss_name],
+        )
+
+        ax.set_title(loss_name, fontsize=14)
+        ax.set_xlabel("Step", fontsize=12)
+        ax.set_ylabel("Train Loss", fontsize=12)
+        ax.tick_params(axis="both", labelsize=10)
+        ax.set_xlim(left=0)  # Optional
+        ax.set_autoscaley_on(True)
+        ax.set_xlim(-500, None)
+
+    fig.tight_layout()
+    fig.savefig(f"{SAVE_DIR}/loss_comparison_grid.png", dpi=300)
     return fig
 
 
@@ -153,7 +199,7 @@ def render_lr(layer: str):
 
     return fig
 
-def render_explicit_quant():
+def render_explicit_quant(metric: str = "train_loss_step",):
     run_names = [
         "quant_1b_impl_BitNet_loss_CrossEntropy",
         "quant_1_58b_impl_BitNet_loss_CrossEntropy",
@@ -162,15 +208,17 @@ def render_explicit_quant():
     pretty_names = ["1-bit", "1.58-bit"]
 
     fig = get_plot(
-        run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
+        run_names, metric, pretty_run_names=pretty_names, rolling_mean=5
     )
     
-    fig.gca().set_ylim(0.0, 12.0)
-    fig.savefig(f"{SAVE_DIR}/quant_precision.png", dpi=300)
+    if metric == "training_loss_step":
+        fig.savefig(f"{SAVE_DIR}/quant_precision.png", dpi=300)
+    elif metric == "flip_flop_step":
+        fig.savefig(f"{SAVE_DIR}/quant_precision_ff.png", dpi=300)
 
     return fig
     
-def render_explicit_layer():
+def render_explicit_layer(metric: str = "train_loss_step",):
     run_names = [
         "quant_1_58b_impl_OneBit_loss_CrossEntropy",
         "quant_1_58b_impl_BitNet_loss_CrossEntropy",
@@ -180,15 +228,17 @@ def render_explicit_layer():
     pretty_names = ["OneBit", "BitNet", "FBI",]
 
     fig = get_plot(
-        run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
+        run_names, metric, pretty_run_names=pretty_names, rolling_mean=5
     )
-    
-    fig.gca().set_ylim(0.0, 12.0)
-    fig.savefig(f"{SAVE_DIR}/quant_layer.png", dpi=300)
+    fig.gca().set_ylim(None, 0.0125)
+    if metric == "training_loss_step":
+        fig.savefig(f"{SAVE_DIR}/quant_layer.png", dpi=300)
+    elif metric == "flip_flop_step":
+        fig.savefig(f"{SAVE_DIR}/quant_layer_ff.png", dpi=300)
 
     return fig
 
-def render_explicit_loss():
+def render_explicit_loss(metric: str = "train_loss_step",):
     run_names = [
         "quant_1_58b_impl_OneBit_loss_CrossEntropy",
         "quant_1_58b_impl_OneBit_loss_KL",
@@ -196,21 +246,26 @@ def render_explicit_loss():
         "quant_1_58b_impl_OneBit_loss_Wasserstein",
     ]
 
-    pretty_names = ["CE", "KL", "CAKL", "Wasserstein"]
+    pretty_names = [
+        "CE", "KL", "CAKL", "Wasserstein",
+        ]
 
     fig = get_plot(
-        run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
+        run_names, metric, pretty_run_names=pretty_names, rolling_mean=5
     )
-    
-    fig.gca().set_ylim(0.0, 12.0)
-    fig.savefig(f"{SAVE_DIR}/quant_loss.png", dpi=300)
+    fig.gca().set_ylim(-0.0001, 0.003)
+    if metric == "training_loss_step":
+        fig.savefig(f"{SAVE_DIR}/quant_loss.png", dpi=300)
+    elif metric == "flip_flop_step":
+        fig.savefig(f"{SAVE_DIR}/quant_loss_ff.png", dpi=300)
 
     return fig
     
     
 if __name__ == "__main__":
     # fig = render_ZD_comparision()
-    # fig = render_explicit_layer()
+    fig = render_explicit_layer(metric="flip_flop_step",)
     # fig = render_explicit_quant()
-    fig = render_explicit_loss()
+    # fig = render_explicit_loss(metric="flip_flop_step",)
+    # fig = render_loss_variants_grid()
     fig.show()

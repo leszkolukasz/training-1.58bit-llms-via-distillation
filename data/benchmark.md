@@ -2,11 +2,17 @@
 
 ## Teacher
 
+{'winogrande': {'alias': 'winogrande', 'acc,none': 0.5674822415153907, 'acc_stderr,none': 0.013923911578623853}}
+
+{'wikitext': {'alias': 'wikitext', 'word_perplexity,none': 24.110178550586966, 'word_perplexity_stderr,none': 'N/A', 'byte_perplexity,none': 1.8133364399984173, 'byte_perplexity_stderr,none': 'N/A', 'bits_per_byte,none': 0.8586466224271447, 'bits_per_byte_stderr,none': 'N/A'}}
+
 {'hellaswag': {'alias': 'hellaswag', 'acc,none': 0.35022903804023103, 'acc_stderr,none': 0.0047606663111467475, 'acc_norm,none': 0.42929695279824737, 'acc_norm_stderr,none': 0.004939642460172386}}
 
-{'mathqa': {'alias': 'mathqa', 'acc,none': 0.23182579564489111, 'acc_stderr,none': 0.007725228423497212, 'acc_norm,none': 0.23953098827470687, 'acc_norm_stderr,none': 0.007813078802813324}}
+{'mathqa': {'alias': 'mathqa', 'acc,none': 0.30921273031825797, 'acc_stderr,none': 0.00846060532124854, 'acc_norm,none': 0.311892797319933, 'acc_norm_stderr,none': 0.008480692476007723}}
 
 ## quant_1_58b_impl_FBI_loss_CrossEntropy
+
+{'winogrande': {'alias': 'winogrande', 'acc,none': 0.531965272296764, 'acc_stderr,none': 0.014023739221166408}}
 
 {'wikitext': {'alias': 'wikitext', 'word_perplexity,none': 278.2786715132552, 'word_perplexity_stderr,none': 'N/A', 'byte_perplexity,none': 2.8650352164795607, 'byte_perplexity_stderr,none': 'N/A', 'bits_per_byte,none': 1.5185528724300565, 'bits_per_byte_stderr,none': 'N/A'}}
 
@@ -16,6 +22,8 @@
 
 ## quant_1_58b_impl_OneBit_loss_CrossEntropy
 
+{'winogrande': {'alias': 'winogrande', 'acc,none': 0.5098658247829518, 'acc_stderr,none': 0.014049749833367674}}
+
 {'wikitext': {'alias': 'wikitext', 'word_perplexity,none': 235.77867938368865, 'word_perplexity_stderr,none': 'N/A', 'byte_perplexity,none': 2.7776032188696087, 'byte_perplexity_stderr,none': 'N/A', 'bits_per_byte,none': 1.473840524786062, 'bits_per_byte_stderr,none': 'N/A'}}
 
 {'hellaswag': {'alias': 'hellaswag', 'acc,none': 0.3105954989046007, 'acc_stderr,none': 0.004617917316181616, 'acc_norm,none': 0.35680143397729536, 'acc_norm_stderr,none': 0.004780764443411141}}
@@ -23,6 +31,8 @@
 {'mathqa': {'alias': 'mathqa', 'acc,none': 0.23149078726968175, 'acc_stderr,none': 0.007721327716271291, 'acc_norm,none': 0.22512562814070353, 'acc_norm_stderr,none': 0.007645901662342614}}
 
 # quant_1_58b_impl_OneBit_loss_KL
+
+{'winogrande': {'alias': 'winogrande', 'acc,none': 0.5169692186266772, 'acc_stderr,none': 0.014044390401613116}}
 
 {'wikitext': {'alias': 'wikitext', 'word_perplexity,none': 237.7264869981345, 'word_perplexity_stderr,none': 'N/A', 'byte_perplexity,none': 2.7818799439767243, 'byte_perplexity_stderr,none': 'N/A', 'bits_per_byte,none': 1.47606015964766, 'bits_per_byte_stderr,none': 'N/A'}}
 
@@ -38,9 +48,13 @@
 
 # quant_1b_impl_BitNet_loss_CrossEntropy
 
+{'winogrande': {'alias': 'winogrande', 'acc,none': 0.5027624309392266, 'acc_stderr,none': 0.014052271211616401}}
+
 {'wikitext': {'alias': 'wikitext', 'word_perplexity,none': 267.92812541763885, 'word_perplexity_stderr,none': 'N/A', 'byte_perplexity,none': 2.844798826543643, 'byte_perplexity_stderr,none': 'N/A', 'bits_per_byte,none': 1.5083266341804835, 'bits_per_byte_stderr,none': 'N/A'}}
 
 # quant_1_58b_impl_BitNet_loss_CrossEntropy
+
+{'winogrande': {'alias': 'winogrande', 'acc,none': 0.5153906866614049, 'acc_stderr,none': 0.014045826789783585}}
 
 {'wikitext': {'alias': 'wikitext', 'word_perplexity,none': 254.99339890975523, 'word_perplexity_stderr,none': 'N/A', 'byte_perplexity,none': 2.81859671203496, 'byte_perplexity_stderr,none': 'N/A', 'bits_per_byte,none': 1.4949770702570164, 'bits_per_byte_stderr,none': 'N/A'}}
 
@@ -49,5 +63,7 @@
 {'wikitext': {'alias': 'wikitext', 'word_perplexity,none': 231.3611946053712, 'word_perplexity_stderr,none': 'N/A', 'byte_perplexity,none': 2.7677964332364398, 'byte_perplexity_stderr,none': 'N/A', 'bits_per_byte,none': 1.468737839087346, 'bits_per_byte_stderr,none': 'N/A'}}
 
 # quant_1_58b_impl_OneBit_loss_Wasserstein
+
+{'winogrande': {'alias': 'winogrande', 'acc,none': 0.5043409629044988, 'acc_stderr,none': 0.014051956064076884}}
 
 {'wikitext': {'alias': 'wikitext', 'word_perplexity,none': 780769.2892285205, 'word_perplexity_stderr,none': 'N/A', 'byte_perplexity,none': 12.645360188913205, 'byte_perplexity_stderr,none': 'N/A', 'bits_per_byte,none': 3.6605362260251746, 'bits_per_byte_stderr,none': 'N/A'}}

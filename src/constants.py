@@ -25,12 +25,17 @@ HF_USERNAME = config("HF_USERNAME", default=None)
 HF_TOKEN = config("HF_TOKEN", default=None)
 
 # Evaluation
-HF_MODEL_CKPT = "./mlruns/303248108160348311/557d56e05aba4ee09b4b2aede81b0fa7/checkpoints/epoch=2-step=15999.ckpt"
+HF_MODEL_CKPT = "./mlruns/770830031765675480/ebd2bc4a55da4007964d1e9b3c1d77eb/checkpoints/epoch=2-step=17999.ckpt"
 HF_CONVERTED_OUT_DIR = "./data/hf_converted"
 HF_QUANTIZATION = "1b_no_shift"
 HF_BITLINEAR_IMPL = "BitNet"
 HF_LOSS_FUNCTION = "CrossEntropy"
 
+# with open("input.txt", "r") as f:
+#     lines = f.readlines()
+#     HF_QUANTIZATION = lines[0].strip()
+#     HF_BITLINEAR_IMPL = lines[1].strip()
+#     HF_LOSS_FUNCTION = lines[2].strip()
 # with open("input.txt", "r") as f:
 #     lines = f.readlines()
 #     HF_QUANTIZATION = lines[0].strip()
