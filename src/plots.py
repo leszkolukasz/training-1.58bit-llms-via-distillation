@@ -187,9 +187,30 @@ def render_explicit_layer():
     fig.savefig(f"{SAVE_DIR}/quant_layer.png", dpi=300)
 
     return fig
+
+def render_explicit_loss():
+    run_names = [
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy",
+        "quant_1_58b_impl_OneBit_loss_KL",
+        "quant_1_58b_impl_OneBit_loss_CAKL",
+        "quant_1_58b_impl_OneBit_loss_Wasserstein",
+    ]
+
+    pretty_names = ["CE", "KL", "CAKL", "Wasserstein"]
+
+    fig = get_plot(
+        run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
+    )
+    
+    fig.gca().set_ylim(0.0, 12.0)
+    fig.savefig(f"{SAVE_DIR}/quant_loss.png", dpi=300)
+
+    return fig
+    
     
 if __name__ == "__main__":
     # fig = render_ZD_comparision()
     # fig = render_explicit_layer()
-    fig = render_explicit_quant()
+    # fig = render_explicit_quant()
+    fig = render_explicit_loss()
     fig.show()

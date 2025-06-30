@@ -10,7 +10,7 @@ trainer:
     class_path: lightning.pytorch.loggers.MLFlowLogger
     init_args:
       experiment_name: nlp_project
-      run_name: quant_1_58b_impl_OneBit_loss_CrossEntropy
+      run_name: quant_1_58b_impl_OneBit_loss_CrossEntropy_ZD_10_least
       tracking_uri: file:mlruns
       tags: null
       save_dir: ./mlruns
@@ -18,13 +18,13 @@ trainer:
       checkpoint_path_prefix: ''
       prefix: ''
       artifact_location: null
-      run_id: 6963e38a61c64c9781a3cbed813344b4
+      run_id: e3e99cd6204842659a45f6fb604b7150
       synchronous: null
   callbacks: null
   fast_dev_run: false
-  max_epochs: 3
+  max_epochs: null
   min_epochs: null
-  max_steps: -1
+  max_steps: 500
   min_steps: null
   max_time: null
   limit_train_batches: null
@@ -68,4 +68,4 @@ data:
     chunks: null
 optimizer: null
 lr_scheduler: null
-ckpt_path: mlruns/770830031765675480/6963e38a61c64c9781a3cbed813344b4/checkpoints/epoch=0-step=5999.ckpt
+ckpt_path: null

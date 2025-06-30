@@ -1,0 +1,15 @@
+artifact_uri: file:///media/whistleroosh/Universal/projects/training-1.58bit-llms-via-distillation/mlruns/770830031765675480/ef711eeae25c4cc2a60440fcdb394f23/artifacts
+end_time: 1751271850465
+entry_point_name: ''
+experiment_id: '770830031765675480'
+lifecycle_stage: active
+run_id: ef711eeae25c4cc2a60440fcdb394f23
+run_name: quant_1b_no_shift_impl_BitNet_loss_CrossEntropy
+run_uuid: ef711eeae25c4cc2a60440fcdb394f23
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1751242370540
+status: 4
+tags: []
+user_id: unknown
