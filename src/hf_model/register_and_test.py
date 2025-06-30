@@ -32,7 +32,7 @@ if __name__ == "__main__":
         model_args=f"pretrained={ORG_NAME}/{HF_MODEL_NAME}",
         tasks=[HARNESS_TASK],
         device="cuda:0",
-        batch_size=4,
+        batch_size=2,
         task_manager=task_manager,
     )
 
