@@ -38,12 +38,29 @@ def plot_metric(
     metric_name: str,
     pretty_run_names: list[str],
     rolling_mean: int = 1,
+    x_lims: tuple = (-500, 17999),
 ):
     dfs = [get_metric_df(run, metric_name, rolling_mean=rolling_mean) for run in runs]
     combined_df = pl.concat(dfs).to_pandas()
-
+    
+    alpha = 1
     ax = fig.gca()
-    sns.lineplot(data=combined_df, x="step", y=metric_name, hue="run_name", ax=ax, linewidth=2)
+    #palette = sns.color_palette("colorblind", len(runs))
+    for idx, (run, pretty_name) in enumerate(zip(runs, pretty_run_names)):
+        run_df = combined_df[combined_df["run_name"] == run.info.run_name]
+        
+        sns.lineplot(
+            data=run_df,
+            x="step",
+            y=metric_name,
+            label=pretty_name,
+            ax=ax,
+            linewidth=2,
+            #color=palette[idx % len(palette)],
+            alpha=alpha,
+            errorbar=None,
+        )
+        alpha -= 0.5
 
     # Replace legend labels with pretty names
     handles, labels = ax.get_legend_handles_labels()
@@ -55,6 +72,7 @@ def plot_metric(
     ax.set_xlabel("Step", fontsize=14)
     ax.set_ylabel(metric_name.replace("_", " ").title(), fontsize=14)
     ax.tick_params(axis="both", which="major", labelsize=14)
+    ax.set_xlim(x_lims[0], x_lims[1])
 
     fig.tight_layout()
 
@@ -135,25 +153,43 @@ def render_lr(layer: str):
 
     return fig
 
-def render_explicit():
+def render_explicit_quant():
     run_names = [
-        "quant_1_58b_impl_OneBit_loss_CrossEntropy",
-        "quant_1_58b_impl_FBI_loss_CrossEntropy",
+        "quant_1b_impl_BitNet_loss_CrossEntropy",
         "quant_1_58b_impl_BitNet_loss_CrossEntropy",
     ]
 
-    pretty_names = ["OneBit", "FBI", "BitNet"]
+    pretty_names = ["1-bit", "1.58-bit"]
 
     fig = get_plot(
         run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
     )
-    fig.gca().set_ylim(0.0, 20.0)
-    fig.savefig(f"{SAVE_DIR}/quant_module_method.png", dpi=300)
+    
+    fig.gca().set_ylim(0.0, 12.0)
+    fig.savefig(f"{SAVE_DIR}/quant_precision.png", dpi=300)
 
     return fig
     
+def render_explicit_layer():
+    run_names = [
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy",
+        "quant_1_58b_impl_BitNet_loss_CrossEntropy",
+        "quant_1_58b_impl_FBI_loss_CrossEntropy",
+    ]
 
+    pretty_names = ["OneBit", "BitNet", "FBI",]
 
+    fig = get_plot(
+        run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
+    )
+    
+    fig.gca().set_ylim(0.0, 12.0)
+    fig.savefig(f"{SAVE_DIR}/quant_layer.png", dpi=300)
+
+    return fig
+    
 if __name__ == "__main__":
-    fig = render_ZD_comparision()
+    # fig = render_ZD_comparision()
+    # fig = render_explicit_layer()
+    fig = render_explicit_quant()
     fig.show()
