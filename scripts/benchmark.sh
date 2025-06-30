@@ -4,12 +4,12 @@ set -e
 
 configs=(
   # "1b BitNet CrossEntropy"
-  "1_58b BitNet CrossEntropy"
-  "1_58b FBI CrossEntropy"
-  "1_58b OneBit CrossEntropy"
-  "1_58b OneBit KL"
-  # "1_58b OneBit CAKL"
-  "1_58b OneBit Wasserstein"
+  # "1_58b BitNet CrossEntropy"
+  # "1_58b FBI CrossEntropy"
+  # "1_58b OneBit CrossEntropy"
+  # "1_58b OneBit KL"
+  "1_58b OneBit CAKL"
+  # "1_58b OneBit Wasserstein"
 )
 
 for config in "${configs[@]}"; do

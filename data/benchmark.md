@@ -8,7 +8,7 @@
 
 {'hellaswag': {'alias': 'hellaswag', 'acc,none': 0.35022903804023103, 'acc_stderr,none': 0.0047606663111467475, 'acc_norm,none': 0.42929695279824737, 'acc_norm_stderr,none': 0.004939642460172386}}
 
-{'mathqa': {'alias': 'mathqa', 'acc,none': 0.30921273031825797, 'acc_stderr,none': 0.00846060532124854, 'acc_norm,none': 0.311892797319933, 'acc_norm_stderr,none': 0.008480692476007723}}
+{'mathqa': {'alias': 'mathqa', 'acc,none': 0.23182579564489111, 'acc_stderr,none': 0.007725228423497212, 'acc_norm,none': 0.23953098827470687, 'acc_norm_stderr,none': 0.007813078802813324}}
 
 ## quant_1_58b_impl_FBI_loss_CrossEntropy
 
@@ -60,7 +60,13 @@
 
 # quant_1_58b_impl_OneBit_loss_CAKL
 
-{'wikitext': {'alias': 'wikitext', 'word_perplexity,none': 231.3611946053712, 'word_perplexity_stderr,none': 'N/A', 'byte_perplexity,none': 2.7677964332364398, 'byte_perplexity_stderr,none': 'N/A', 'bits_per_byte,none': 1.468737839087346, 'bits_per_byte_stderr,none': 'N/A'}}
+{'hellaswag': {'alias': 'hellaswag', 'acc,none': 0.3089026090420235, 'acc_stderr,none': 0.0046109661223782995, 'acc_norm,none': 0.35570603465445133, 'acc_norm_stderr,none': 0.0047774831596343005}}
+
+{'mathqa': {'alias': 'mathqa', 'acc,none': 0.22981574539363483, 'acc_stderr,none': 0.007701721295429188, 'acc_norm,none': 0.22948073701842547, 'acc_norm_stderr,none': 0.007697779360944345}}
+
+{'winogrande': {'alias': 'winogrande', 'acc,none': 0.5082872928176796, 'acc_stderr,none': 0.01405055532282417}}
+
+{'wikitext': {'alias': 'wikitext', 'word_perplexity,none': 233.6787827933029, 'word_perplexity_stderr,none': 'N/A', 'byte_perplexity,none': 2.772960260962869, 'byte_perplexity_stderr,none': 'N/A', 'bits_per_byte,none': 1.4714269413962875, 'bits_per_byte_stderr,none': 'N/A'}}
 
 # quant_1_58b_impl_OneBit_loss_Wasserstein
 
