@@ -132,7 +132,25 @@ def render_lr(layer: str):
 
     return fig
 
+def render_explicit():
+    run_names = [
+        "quant_1_58b_impl_OneBit_loss_CrossEntropy",
+        "quant_1_58b_impl_FBI_loss_CrossEntropy",
+        "quant_1_58b_impl_BitNet_loss_CrossEntropy",
+    ]
+
+    pretty_names = ["OneBit", "FBI", "BitNet"]
+
+    fig = get_plot(
+        run_names, "train_loss_step", pretty_run_names=pretty_names, rolling_mean=5
+    )
+    fig.gca().set_ylim(0.0, 20.0)
+    fig.savefig(f"{SAVE_DIR}/quant_module_method.png", dpi=300)
+
+    return fig
+    
+
 
 if __name__ == "__main__":
-    fig = render_lr("OneBit")
+    fig = render_explicit()
     fig.show()

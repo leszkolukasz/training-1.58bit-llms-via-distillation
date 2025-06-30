@@ -25,10 +25,10 @@ HF_USERNAME = config("HF_USERNAME", default=None)
 HF_TOKEN = config("HF_TOKEN", default=None)
 
 # Evaluation
-HF_MODEL_CKPT = "./mlruns/770830031765675480/ed074b3860e9461e862fda19c0b4a880/checkpoints/epoch=2-step=17999.ckpt"
+HF_MODEL_CKPT = "./mlruns/303248108160348311/557d56e05aba4ee09b4b2aede81b0fa7/checkpoints/epoch=2-step=15999.ckpt"
 HF_CONVERTED_OUT_DIR = "./data/hf_converted"
 HF_QUANTIZATION = "1_58b"
 HF_BITLINEAR_IMPL = "OneBit"
-HF_LOSS_FUNCTION = "KL"
+HF_LOSS_FUNCTION = "CAKL"
 HF_MODEL_NAME = f"quant_{HF_QUANTIZATION}_impl_{HF_BITLINEAR_IMPL}_loss_{HF_LOSS_FUNCTION}"
 BENCHMARK_OUTPUT_FILE = f"./data/benchmarks/{HF_MODEL_NAME}.pkl"

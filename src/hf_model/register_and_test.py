@@ -13,7 +13,6 @@ from src.constants import ORG_NAME, HF_MODEL_NAME, BENCHMARK_OUTPUT_FILE
 
 # Model registration and evaluation
 
-
 def register():
     AutoConfig.register("quantized_net42", BitConfig42)
     AutoModel.register(BitConfig42, HFQuantizedSmolModel)
@@ -31,7 +30,7 @@ if __name__ == "__main__":
     results = evaluator.simple_evaluate(
         model="hf",
         model_args=f"pretrained={ORG_NAME}/{HF_MODEL_NAME}",
-        tasks=["hellaswag"],
+        tasks=["hellaswag", "mathqa"],
         device="cuda:0",
         batch_size=4,
         task_manager=task_manager,
