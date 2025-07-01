@@ -1,5 +1,9 @@
 ## Training 1.58bit LLMs via Distillation
 
+This repository contains code and results of the mini-paper "Training 1.58bit LLMs via Distillation" created as final project for the Natural Language Processing course at the University of Warsaw.
+
+The final paper is available under `paper/report.pdf`.
+
 ### Training
 
 To train, execute the following command:

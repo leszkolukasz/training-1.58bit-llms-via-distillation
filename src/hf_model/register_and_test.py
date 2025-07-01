@@ -8,10 +8,12 @@ from lm_eval.utils import setup_logging
 from transformers import (CONFIG_MAPPING, AutoConfig, AutoModel,
                           AutoModelForCausalLM)
 
+from src.constants import (BENCHMARK_OUTPUT_FILE, HARNESS_TASK, HF_MODEL_NAME,
+                           ORG_NAME)
 from src.hf_model.hf_class import BitConfig42, HFQuantizedSmolModel
-from src.constants import ORG_NAME, HF_MODEL_NAME, BENCHMARK_OUTPUT_FILE, HARNESS_TASK
 
 # Model registration and evaluation
+
 
 def register():
     AutoConfig.register("quantized_net42", BitConfig42)

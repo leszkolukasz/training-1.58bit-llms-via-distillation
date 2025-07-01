@@ -7,7 +7,7 @@ BUILDDIR := _build
 all: $(PDFFILES)
 
 %.pdf: %.tex
-	latexmk -quiet -bibtex -f -pdflua -use-make -outdir=$(BUILDDIR) $(PREVIEW_CONTINUOUSLY) ./$<
+	latexmk -quiet -bibtex -f -pdfxe -use-make -outdir=$(BUILDDIR) $(PREVIEW_CONTINUOUSLY) ./$<
 	cp $(BUILDDIR)/$*.pdf ./$@
 
 watch: PREVIEW_CONTINUOUSLY=-pvc

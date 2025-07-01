@@ -27,16 +27,18 @@ HF_TOKEN = config("HF_TOKEN", default=None)
 # Evaluation
 HF_MODEL_CKPT = "./mlruns/770830031765675480/ebd2bc4a55da4007964d1e9b3c1d77eb/checkpoints/epoch=2-step=17999.ckpt"
 HF_CONVERTED_OUT_DIR = "./data/hf_converted"
-# HF_QUANTIZATION = "1_58b"
-# HF_BITLINEAR_IMPL = "OneBit"
-# HF_LOSS_FUNCTION = "CAKL"
+HF_QUANTIZATION = "1_58b"
+HF_BITLINEAR_IMPL = "OneBit"
+HF_LOSS_FUNCTION = "CAKL"
 
-with open("input.txt", "r") as f:
-    lines = f.readlines()
-    HF_QUANTIZATION = lines[0].strip()
-    HF_BITLINEAR_IMPL = lines[1].strip()
-    HF_LOSS_FUNCTION = lines[2].strip()
+# with open("input.txt", "r") as f:
+#     lines = f.readlines()
+#     HF_QUANTIZATION = lines[0].strip()
+#     HF_BITLINEAR_IMPL = lines[1].strip()
+#     HF_LOSS_FUNCTION = lines[2].strip()
 
-HF_MODEL_NAME = f"quant_{HF_QUANTIZATION}_impl_{HF_BITLINEAR_IMPL}_loss_{HF_LOSS_FUNCTION}"
+HF_MODEL_NAME = (
+    f"quant_{HF_QUANTIZATION}_impl_{HF_BITLINEAR_IMPL}_loss_{HF_LOSS_FUNCTION}"
+)
 HARNESS_TASK = "hellaswag"
 BENCHMARK_OUTPUT_FILE = f"./data/benchmarks/{HF_MODEL_NAME}_{HARNESS_TASK}.pkl"

@@ -6,6 +6,7 @@ import pandas as pd
 
 from src.constants import BENCHMARK_OUTPUT_FILE
 
+
 def read_and_display(read_path: str):
     if not os.path.exists(read_path):
         print(f"Creating {read_path} file")

@@ -4,12 +4,13 @@ import os
 import shutil
 
 import torch
-from transformers import (AutoTokenizer, PretrainedConfig, PreTrainedModel)
+from transformers import AutoTokenizer, PretrainedConfig, PreTrainedModel
 
+from src.constants import (HF_BITLINEAR_IMPL, HF_CONVERTED_OUT_DIR,
+                           HF_LOSS_FUNCTION, HF_MODEL_CKPT, HF_QUANTIZATION)
+from src.layers import ImplementationType, QuantizationType
 from src.loss import LossFunctionType
-from src.layers import QuantizationType, ImplementationType
 from src.models import *
-from src.constants import HF_CONVERTED_OUT_DIR, HF_MODEL_CKPT, HF_BITLINEAR_IMPL, HF_QUANTIZATION, HF_LOSS_FUNCTION
 
 # Script for converting a quantized model to a Hugging Face compatible format
 
@@ -47,14 +48,13 @@ class HFQuantizedSmolModel(PreTrainedModel):
         ).model
 
     def forward(self, input_ids, attention_mask=None, **kwargs):
-        return self.model(
-            input_ids=input_ids, attention_mask=attention_mask, **kwargs
-        )
-    
+        return self.model(input_ids=input_ids, attention_mask=attention_mask, **kwargs)
+
     def generate(self, input_ids, attention_mask=None, **kwargs):
         return self.model.generate(
             input_ids=input_ids, attention_mask=attention_mask, **kwargs
         )
+
 
 if __name__ == "__main__":
     shutil.rmtree(HF_CONVERTED_OUT_DIR, ignore_errors=True)
